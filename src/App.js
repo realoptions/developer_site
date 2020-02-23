@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layout, Menu, Input } from 'antd';
+import { Layout, Menu, Button, message, Alert } from 'antd';
 import './App.css';
 import firebase from 'firebase/app'
 import 'firebase/auth'
@@ -8,6 +8,7 @@ import SwaggerUI from 'swagger-ui-react'
 import 'swagger-ui-react/swagger-ui.css'
 import Logo from './Logo'
 import { menuHeight, logoHeight, paddingTop } from './styles'
+import { copyToClipboard } from './copyToClipboard'
 const config = require('./config.json')
 
 const { Header, Content, Footer } = Layout
@@ -29,35 +30,30 @@ const uiConfig = {
     firebase.auth.GithubAuthProvider.PROVIDER_ID
   ]
 };
+const info = () => {
+  message.info('Token copied');
+}
 
-const DevHome = ({ child }) => <Layout className="layout" style={{ height: "100vh" }}>
-  <Header>
-    <div className="logo" style={{ paddingTop }}>
-      <Logo
-        className="logo-primary"
-        height={logoHeight}
-        width={logoHeight}
-      />
-    </div>
-    <Menu
-      theme="dark"
-      mode="horizontal"
-      defaultSelectedKeys={['2']}
-      style={{ lineHeight: menuHeight + 'px' }}
-    >
-      <Menu.Item key="1">nav 1</Menu.Item>
-      <Menu.Item key="2">nav 2</Menu.Item>
-      <Menu.Item key="3">nav 3</Menu.Item>
-    </Menu>
-  </Header>
-  <Content style={{ padding: '0 50px' }}>
-    {child()}
-  </Content>
-  <Footer style={{ textAlign: 'center' }}>Finside</Footer>
-</Layout>
+const Description = ({ token }) => <div>
+  <p>
+    The API uses tokens provided through OAUTH2 Providers. To authenticate the API, copy the token and
+    paste it into the "JWT  (apiKey)" box.
+</p>
+  <Button type="primary" icon="copy" onClick={() => {
+    copyToClipboard(token)
+    info()
+  }}>Copy Token</Button>
+</div>
+
+const Explaination = ({ token }) => <Alert
+  message="Authentication"
+  description={<Description token={token} />}
+  type="info"
+  style={{ marginTop: 15 }}
+/>
 
 
-const SignInScreen = () => {
+const DevHome = () => {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState("")
   console.log(token)
@@ -71,14 +67,36 @@ const SignInScreen = () => {
     setUser(user)
 
   })
+  const isSignedIn = !!user
+  return <Layout className="layout" style={{ minHeight: "100vh" }}>
+    <Header>
+      <div className="logo" style={{ paddingTop }}>
+        <Logo
+          className="logo-primary"
+          height={logoHeight}
+          width={logoHeight}
+        />
+      </div>
+      <Menu
+        theme="dark"
+        mode="horizontal"
+        //defaultSelectedKeys={['2']}
+        style={{ lineHeight: menuHeight + 'px' }}
+      >
+        {isSignedIn && <Menu.Item key="1" onClick={() => firebase.auth().signOut()} style={{ float: 'right' }}>Log Out</Menu.Item>}
+      </Menu>
+    </Header>
+    <Content style={{ padding: '0 50px' }}>
+      {isSignedIn ? <><Explaination token={token} style={{ marginTop: 15 }} /><SwaggerUI
+        url={`https://cdn.jsdelivr.net/gh/realoptions/option_price_faas@${process
+          .env.REACT_APP_TAG || 'v67'}/docs/openapi_v2.yml`}
+        docExpansion='list'
+      /></> : <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} />}
+    </Content>
+    <Footer style={{ textAlign: 'center' }}>Finside</Footer>
+  </Layout>
 
-  console.log(user)
-  return <DevHome
-    child={() => !!user ? <><Input.Password value={token} /><SwaggerUI
-      url={`https://cdn.jsdelivr.net/gh/realoptions/option_price_faas@${process
-        .env.REACT_APP_TAG || 'v67'}/docs/openapi_v2.yml`}
-    /></> : <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} />}
-  />
 }
 
-export default SignInScreen;
+
+export default DevHome;

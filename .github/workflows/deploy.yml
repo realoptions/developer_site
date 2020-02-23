@@ -1,0 +1,26 @@
+name: deploy
+on:
+    push:
+        branches:
+            - master
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: build
+      run: |
+        echo "REACT_APP_FirebaseAPIKey=${{ secrets.FIREBASE_API_KEY }}" >> .env
+        echo "REACT_APP_FacebookAppID=$facebookAppId" >> .env
+        npm ci
+        npm build
+      env:
+        CI: True
+        
+    - name: Deploy pages
+      uses: JamesIves/github-pages-deploy-action@master
+      env: 
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        BRANCH: gh-pages
+        FOLDER: build

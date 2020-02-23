@@ -30,7 +30,7 @@ const uiConfig = {
   ]
 };
 
-const DevHome = ({ child }) => <Layout className="layout">
+const DevHome = ({ child }) => <Layout className="layout" style={{ height: "100vh" }}>
   <Header>
     <div className="logo" style={{ paddingTop }}>
       <Logo

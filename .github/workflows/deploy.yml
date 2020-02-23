@@ -5,16 +5,15 @@ on:
             - master
 
 jobs:
-  docs:
+  deploy:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
     - name: build
       run: |
         echo "REACT_APP_FirebaseAPIKey=${{ secrets.FIREBASE_API_KEY }}" >> .env
-        echo "REACT_APP_FacebookAppID=$facebookAppId" >> .env
         npm ci
-        npm build
+        npm run build
       env:
         CI: True
         

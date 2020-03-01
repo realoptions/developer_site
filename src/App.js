@@ -13,8 +13,6 @@ const config = require('./config.json')
 
 const { Header, Content, Footer } = Layout
 // Initialize Firebase
-console.log(process.env.REACT_APP_FirebaseAPIKey)
-console.log(process.env)
 firebase.initializeApp({ ...config, apiKey: process.env.REACT_APP_FirebaseAPIKey });
 
 // Configure FirebaseUI.

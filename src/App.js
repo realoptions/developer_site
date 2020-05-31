@@ -9,29 +9,8 @@ import 'swagger-ui-react/swagger-ui.css'
 import Logo from './Logo'
 import { menuHeight, logoHeight, paddingTop } from './styles'
 import { copyToClipboard } from './copyToClipboard'
-
-
-const webpackRequireContext = require.context(
-  '!raw-loader!../public',
-  false,
-  /\.yml$/,
-)
-
-// Convert to Map
-const files = webpackRequireContext.keys().reduce((map, fileName) => {
-  const markdown = webpackRequireContext(fileName)
-  // remove the leading './'
-  if (fileName.startsWith('./')) {
-    fileName = fileName.substr(2)
-  }
-
-  return map.set(fileName, markdown);
-}, new Map())
-
-console.log(files)
-
+const apiSpec = require('./swagger_spec.json')
 const config = require('./config.json')
-
 const { Header, Content, Footer } = Layout
 // Initialize Firebase
 firebase.initializeApp({ ...config, apiKey: process.env.REACT_APP_FirebaseAPIKey });
@@ -99,7 +78,6 @@ const DevHome = () => {
       <Menu
         theme="dark"
         mode="horizontal"
-        //defaultSelectedKeys={['2']}
         style={{ lineHeight: menuHeight + 'px' }}
       >
         {isSignedIn && <Menu.Item key="1" onClick={() => firebase.auth().signOut()} style={{ float: 'right' }}>Log Out</Menu.Item>}
@@ -107,7 +85,8 @@ const DevHome = () => {
     </Header>
     <Content style={{ padding: '0 50px' }}>
       {isSignedIn ? <><Explaination token={token} style={{ marginTop: 15 }} /><SwaggerUI
-        spec={files.get('openapi_v2.yml')}
+        spec={apiSpec}
+        supportedSubmitMethods={["get", "put", "post", "delete"]}
         docExpansion='list'
       /></> : <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} />}
     </Content>

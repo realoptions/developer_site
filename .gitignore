@@ -24,3 +24,4 @@ yarn-error.log*
 .env
 openapi_v2.yml
 releases.json
+swagger_spec.json

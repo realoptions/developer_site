@@ -16,6 +16,7 @@ jobs:
         echo "REACT_APP_TAG=$tag" >> .env
         echo "this is the tag #: $tag"
         echo "REACT_APP_FirebaseAPIKey=${{ secrets.FIREBASE_API_KEY }}" >> .env
+        access_token=${{ secrets.ACCESS_TOKEN }} node ./scripts/downloadYML.js
         npm ci
         npm run build
       env:

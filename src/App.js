@@ -9,6 +9,27 @@ import 'swagger-ui-react/swagger-ui.css'
 import Logo from './Logo'
 import { menuHeight, logoHeight, paddingTop } from './styles'
 import { copyToClipboard } from './copyToClipboard'
+
+
+const webpackRequireContext = require.context(
+  '!raw-loader!../public',
+  false,
+  /\.yml$/,
+)
+
+// Convert to Map
+const files = webpackRequireContext.keys().reduce((map, fileName) => {
+  const markdown = webpackRequireContext(fileName)
+  // remove the leading './'
+  if (fileName.startsWith('./')) {
+    fileName = fileName.substr(2)
+  }
+
+  return map.set(fileName, markdown);
+}, new Map())
+
+console.log(files)
+
 const config = require('./config.json')
 
 const { Header, Content, Footer } = Layout
@@ -55,7 +76,6 @@ const Explaination = ({ token }) => <Alert
 const DevHome = () => {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState("")
-  console.log(token)
   firebase.auth().onAuthStateChanged(user => {
     if (user) {
       user.getIdToken(true).then(setToken).catch(err => console.log(err))
@@ -87,8 +107,7 @@ const DevHome = () => {
     </Header>
     <Content style={{ padding: '0 50px' }}>
       {isSignedIn ? <><Explaination token={token} style={{ marginTop: 15 }} /><SwaggerUI
-        url={`https://cdn.jsdelivr.net/gh/realoptions/option_price_faas@${process
-          .env.REACT_APP_TAG || 'v67'}/docs/openapi_v2.yml`}
+        spec={files.get('openapi_v2.yml')}
         docExpansion='list'
       /></> : <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} />}
     </Content>

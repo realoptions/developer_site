@@ -44,7 +44,7 @@ const Description = ({ token }) => <div>
   }}>Copy Token</Button>
 </div>
 
-const Explaination = ({ token }) => <Alert
+const Explanation = ({ token }) => <Alert
   message="Authentication"
   description={<Description token={token} />}
   type="info"
@@ -84,7 +84,7 @@ const DevHome = () => {
       </Menu>
     </Header>
     <Content style={{ padding: '0 50px' }}>
-      {isSignedIn ? <><Explaination token={token} style={{ marginTop: 15 }} /><SwaggerUI
+      {isSignedIn ? <><Explanation token={token} style={{ marginTop: 15 }} /><SwaggerUI
         spec={apiSpec}
         supportedSubmitMethods={["get", "put", "post", "delete"]}
         docExpansion='list'

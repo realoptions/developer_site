@@ -13,25 +13,26 @@ asset = assets.find(val => val.name === assetName)
 const writePath = path.join(cwd, assetName)
 const jsonPath = path.join(cwd, 'src', 'swagger_spec.json')
 const file = fs.createWriteStream(writePath)
-https.get({
-    url: asset.browser_download_url,
-    headers: {
-        Authorization: `token ${access_token}`
-    }
-}, (response, err) => {
-    if (err) {
-        return console.log(err)
-    }
-    response.pipe(file)
-    file.on('finish', () => {
-        file.close()
-        const jsobj = yaml.safeLoad(fs.readFileSync(writePath, 'utf8'))
-        fs.writeFile(jsonPath, JSON.stringify(jsobj), 'utf8', err => {
-            if (err) console.log(err)
-            fs.unlink(writePath, () => console.log("done"))
+https.get(
+    asset.browser_download_url,
+    {
+        headers: {
+            Authorization: `token ${access_token}`
+        }
+    }, (response, err) => {
+        if (err) {
+            return console.log(err)
+        }
+        response.pipe(file)
+        file.on('finish', () => {
+            file.close()
+            const jsobj = yaml.safeLoad(fs.readFileSync(writePath, 'utf8'))
+            fs.writeFile(jsonPath, JSON.stringify(jsobj), 'utf8', err => {
+                if (err) console.log(err)
+                fs.unlink(writePath, () => console.log("done"))
+            })
         })
+    }).on('error', function (err) { // Handle errors
+        fs.unlink(writePath, () => console.log("deleted")) // Delete the file async. (But we don't check the result)
+        console.log(err)
     })
-}).on('error', function (err) { // Handle errors
-    fs.unlink(writePath, () => console.log("deleted")) // Delete the file async. (But we don't check the result)
-    console.log(err)
-})

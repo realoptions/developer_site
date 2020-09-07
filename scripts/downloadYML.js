@@ -6,14 +6,19 @@ const cwd = process.cwd()
 const releasePath = path.join(cwd, 'scripts', 'releases.json')
 const { assets } = require(releasePath)
 const { access_token } = process.env
-const assetName = 'openapi_v2.yml'
+const assetName = 'openapi_gcp.yml'
 const yaml = require('js-yaml')
 
 asset = assets.find(val => val.name === assetName)
 const writePath = path.join(cwd, assetName)
 const jsonPath = path.join(cwd, 'src', 'swagger_spec.json')
 const file = fs.createWriteStream(writePath)
-https.get(`${asset.browser_download_url}?access_token=${access_token}`, (response, err) => {
+https.get({
+    url: asset.browser_download_url,
+    headers: {
+        Authorization: `token ${access_token}`
+    }
+}, (response, err) => {
     if (err) {
         return console.log(err)
     }

@@ -25,8 +25,8 @@ jobs:
         CI: True
         
     - name: Deploy pages
-      uses: JamesIves/github-pages-deploy-action@master
-      env: 
-        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-        BRANCH: gh-pages
-        FOLDER: build
+      uses: JamesIves/github-pages-deploy-action@4.1.4
+      with: 
+        # ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        branch: gh-pages
+        folder: build

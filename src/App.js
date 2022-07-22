@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Layout, Menu, Button, message, Alert } from 'antd';
 import './App.css';
-import firebase from 'firebase/app'
-import 'firebase/auth'
+import { initializeApp } from 'firebase/app';
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+//import 'firebase/auth'
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 import SwaggerUI from 'swagger-ui-react'
 import 'swagger-ui-react/swagger-ui.css'
@@ -13,8 +14,8 @@ const apiSpec = require('./swagger_spec.json')
 const config = require('./config.json')
 const { Header, Content, Footer } = Layout
 // Initialize Firebase
-firebase.initializeApp({ ...config, apiKey: process.env.REACT_APP_FirebaseAPIKey });
-
+const firebase = initializeApp({ ...config, apiKey: process.env.REACT_APP_FirebaseAPIKey });
+const auth = getAuth(firebase)
 // Configure FirebaseUI.
 const uiConfig = {
   // Popup signin flow rather than redirect flow.
@@ -24,9 +25,9 @@ const uiConfig = {
     signInSuccessWithAuthResult: () => false
   },
   signInOptions: [
-    firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-    firebase.auth.FacebookAuthProvider.PROVIDER_ID,
-    firebase.auth.GithubAuthProvider.PROVIDER_ID
+    auth.GoogleAuthProvider.PROVIDER_ID,
+    auth.FacebookAuthProvider.PROVIDER_ID,
+    auth.GithubAuthProvider.PROVIDER_ID
   ]
 };
 const info = () => {
@@ -37,7 +38,7 @@ const Description = ({ token }) => <div>
   <p>
     The API uses tokens provided through OAUTH2 Providers. To authenticate the API, copy the token and
     paste it into the "JWT  (apiKey)" box.
-</p>
+  </p>
   <Button type="primary" icon="copy" onClick={() => {
     copyToClipboard(token)
     info()
@@ -55,7 +56,7 @@ const Explanation = ({ token }) => <Alert
 const DevHome = () => {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState("")
-  firebase.auth().onAuthStateChanged(user => {
+  onAuthStateChanged(user => {
     if (user) {
       user.getIdToken(true).then(setToken).catch(err => console.log(err))
     }
@@ -80,7 +81,7 @@ const DevHome = () => {
         mode="horizontal"
         style={{ lineHeight: menuHeight + 'px' }}
       >
-        {isSignedIn && <Menu.Item key="1" onClick={() => firebase.auth().signOut()} style={{ float: 'right' }}>Log Out</Menu.Item>}
+        {isSignedIn && <Menu.Item key="1" onClick={() => signOut()} style={{ float: 'right' }}>Log Out</Menu.Item>}
       </Menu>
     </Header>
     <Content style={{ padding: '0 50px' }}>
@@ -88,7 +89,7 @@ const DevHome = () => {
         spec={apiSpec}
         supportedSubmitMethods={["get", "put", "post", "delete"]}
         docExpansion='list'
-      /></> : <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} />}
+      /></> : <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={auth} />}
     </Content>
     <Footer style={{ textAlign: 'center' }}>Finside</Footer>
   </Layout>

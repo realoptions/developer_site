@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Button, message, Alert } from 'antd';
 import './App.css';
 import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, FacebookAuthProvider, GithubAuthProvider } from "firebase/auth";
-
-//import 'firebase/auth'
+import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, FacebookAuthProvider, GithubAuthProvider, User } from "firebase/auth";
+import { CopyOutlined as Copy } from '@ant-design/icons';
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 import SwaggerUI from 'swagger-ui-react'
 import 'swagger-ui-react/swagger-ui.css'
-import Logo from './Logo'
+import Logo from './Logo.tsx'
 import { menuHeight, logoHeight, paddingTop } from './styles'
 import { copyToClipboard } from './copyToClipboard'
 const apiSpec = require('./swagger_spec.json')
@@ -34,39 +33,42 @@ const uiConfig = {
 const info = () => {
   message.info('Token copied');
 }
-
 const Description = ({ token }) => <div>
   <p>
     The API uses tokens provided through OAUTH2 Providers. To authenticate the API, copy the token and
     paste it into the "JWT  (apiKey)" box.
   </p>
-  <Button type="primary" icon="copy" onClick={() => {
+  <Button type="primary" icon={<Copy />} onClick={() => {
     copyToClipboard(token)
     info()
   }}>Copy Token</Button>
 </div>
 
+const explanationStyle = { marginTop: 15 }
 const Explanation = ({ token }) => <Alert
   message="Authentication"
   description={<Description token={token} />}
   type="info"
-  style={{ marginTop: 15 }}
+  style={explanationStyle}
 />
 
 
 const DevHome = () => {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState("")
-  onAuthStateChanged(user => {
-    if (user) {
-      user.getIdToken(true).then(setToken).catch(err => console.log(err))
-    }
-    else {
-      setToken("")
-    }
-    setUser(user)
 
-  })
+  useEffect(() => {
+    const unregisterAuthObserver = onAuthStateChanged(auth, user => {
+      if (user) {
+        user.getIdToken(true).then(setToken).catch(err => console.log(err))
+      }
+      else {
+        setToken("")
+      }
+      setUser(user)
+    });
+    return () => unregisterAuthObserver(); // Make sure we un-register Firebase observers when the component unmounts.
+  }, [])
   const isSignedIn = !!user
   return <Layout className="layout" style={{ minHeight: "100vh" }}>
     <Header>
@@ -82,15 +84,18 @@ const DevHome = () => {
         mode="horizontal"
         style={{ lineHeight: menuHeight + 'px' }}
       >
-        {isSignedIn && <Menu.Item key="1" onClick={() => signOut()} style={{ float: 'right' }}>Log Out</Menu.Item>}
+        {isSignedIn && <Menu.Item key="1" onClick={() => signOut(auth)} style={{ float: 'right' }}>Log Out</Menu.Item>}
       </Menu>
     </Header>
     <Content style={{ padding: '0 50px' }}>
-      {isSignedIn ? <><Explanation token={token} style={{ marginTop: 15 }} /><SwaggerUI
-        spec={apiSpec}
-        supportedSubmitMethods={["get", "put", "post", "delete"]}
-        docExpansion='list'
-      /></> : <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={auth} />}
+      {isSignedIn ? <>
+        <Explanation token={token} />
+        <SwaggerUI
+          spec={apiSpec}
+          supportedSubmitMethods={["get", "put", "post", "delete"]}
+          docExpansion='list'
+        />
+      </> : <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={auth} />}
     </Content>
     <Footer style={{ textAlign: 'center' }}>Finside</Footer>
   </Layout>

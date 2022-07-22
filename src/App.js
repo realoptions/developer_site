@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Layout, Menu, Button, message, Alert } from 'antd';
 import './App.css';
 import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, FacebookAuthProvider, GithubAuthProvider } from "firebase/auth";
+
 //import 'firebase/auth'
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 import SwaggerUI from 'swagger-ui-react'
@@ -25,9 +26,9 @@ const uiConfig = {
     signInSuccessWithAuthResult: () => false
   },
   signInOptions: [
-    auth.GoogleAuthProvider.PROVIDER_ID,
-    auth.FacebookAuthProvider.PROVIDER_ID,
-    auth.GithubAuthProvider.PROVIDER_ID
+    GoogleAuthProvider.PROVIDER_ID,
+    FacebookAuthProvider.PROVIDER_ID,
+    GithubAuthProvider.PROVIDER_ID
   ]
 };
 const info = () => {

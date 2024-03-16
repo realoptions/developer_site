@@ -41,7 +41,7 @@
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.4.1",
     "@testing-library/user-event": "^7.2.1",
-    "follow-redirects": "^1.15.4",
+    "follow-redirects": "^1.15.6",
     "js-yaml": "^3.14.0",
     "raw-loader": "^4.0.1"
   }

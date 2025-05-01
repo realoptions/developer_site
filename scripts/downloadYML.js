@@ -26,7 +26,7 @@ https.get(
         response.pipe(file)
         file.on('finish', () => {
             file.close()
-            const jsobj = yaml.safeLoad(fs.readFileSync(writePath, 'utf8'))
+            const jsobj = yaml.load(fs.readFileSync(writePath, 'utf8'))
             fs.writeFile(jsonPath, JSON.stringify(jsobj), 'utf8', err => {
                 if (err) console.log(err)
                 fs.unlink(writePath, () => console.log("done"))

@@ -74,7 +74,7 @@ const DevHome = () => {
       <Menu
         theme="dark"
         mode="horizontal"
-        style={{ lineHeight: menuHeight + 'px' }}
+        style={{ lineHeight: menuHeight + 'px', float: "right", padding: '0px 10px' }}
         items={isSignedIn ? menuItems : undefined}
         onClick={() => signOut(auth)}
       />

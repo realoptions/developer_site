@@ -1,6 +1,6 @@
 import React from 'react'
 import { GoogleLoginButton, FacebookLoginButton, GithubLoginButton } from 'react-social-login-buttons'
-import { GoogleAuthProvider, FacebookAuthProvider, GithubAuthProvider, signInWithRedirect, Auth } from 'firebase/auth'
+import { GoogleAuthProvider, FacebookAuthProvider, GithubAuthProvider, signInWithPopup, Auth } from 'firebase/auth'
 import { Col, Row } from 'antd';
 const googleProvider = new GoogleAuthProvider()
 const facebookProvider = new FacebookAuthProvider()
@@ -13,7 +13,7 @@ export const LoginButton = ({ auth }: { auth: Auth }) => {
             <Col xs={24} md={12}>
                 <GoogleLoginButton
                     onClick={() => {
-                        signInWithRedirect(auth, googleProvider)
+                        signInWithPopup(auth, googleProvider)
                     }}
                 />
             </Col>
@@ -23,7 +23,7 @@ export const LoginButton = ({ auth }: { auth: Auth }) => {
             <Col xs={24} md={12}>
                 <FacebookLoginButton
                     onClick={() => {
-                        signInWithRedirect(auth, facebookProvider)
+                        signInWithPopup(auth, facebookProvider)
                     }}
                 />
             </Col>
@@ -33,7 +33,7 @@ export const LoginButton = ({ auth }: { auth: Auth }) => {
             <Col xs={24} md={12}>
                 <GithubLoginButton
                     onClick={() => {
-                        signInWithRedirect(auth, githubProvider)
+                        signInWithPopup(auth, githubProvider)
                     }}
                 />
             </Col>

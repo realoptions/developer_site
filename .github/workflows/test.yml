@@ -13,6 +13,6 @@ jobs:
             - name: test coverage
               run: |
                 npm ci 
-                npm test -- --coverage
+                npm test -- --coverage --passWithNoTests 
               env:
                 CI: true

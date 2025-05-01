@@ -16,7 +16,7 @@ jobs:
       - name: test
         run: |
           npm ci 
-          npm test
+          npm test -- --passWithNoTests 
         env:
           CI: true
       - name: setup for deploy

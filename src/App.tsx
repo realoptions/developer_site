@@ -2,34 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Button, message, Alert } from 'antd';
 import './App.css';
 import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, FacebookAuthProvider, GithubAuthProvider, User } from "firebase/auth";
+import { getAuth, onAuthStateChanged, signOut, User } from "firebase/auth";
+import LoginButton from './FirebaseLogin.tsx'
 import { CopyOutlined as Copy } from '@ant-design/icons';
-import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
+import type { MenuProps } from 'antd';
 import SwaggerUI from 'swagger-ui-react'
 import 'swagger-ui-react/swagger-ui.css'
 import Logo from './Logo.tsx'
 import { menuHeight, logoHeight, paddingTop } from './styles'
 import { copyToClipboard } from './copyToClipboard'
+type MenuItem = Required<MenuProps>['items'][number];
 const apiSpec = require('./swagger_spec.json')
 const config = require('./config.json')
 const { Header, Content, Footer } = Layout
-// Initialize Firebase
 const firebase = initializeApp({ ...config, apiKey: process.env.REACT_APP_FirebaseAPIKey });
 const auth = getAuth(firebase)
-// Configure FirebaseUI.
-const uiConfig = {
-  // Popup signin flow rather than redirect flow.
-  signInFlow: 'popup',
-  callbacks: {
-    // Avoid redirects after sign-in.
-    signInSuccessWithAuthResult: () => false
-  },
-  signInOptions: [
-    GoogleAuthProvider.PROVIDER_ID,
-    FacebookAuthProvider.PROVIDER_ID,
-    GithubAuthProvider.PROVIDER_ID
-  ]
-};
 const info = () => {
   message.info('Token copied');
 }
@@ -52,6 +39,11 @@ const Explanation = ({ token }) => <Alert
   style={explanationStyle}
 />
 
+const menuItems: MenuItem[] = [
+  { key: '1', label: 'Log Out' },
+]
+
+//onClick={() => signOut(auth)} style={{ float: 'right' }}>Log Out
 
 const DevHome = () => {
   const [user, setUser] = useState<User | null>(null)
@@ -83,9 +75,10 @@ const DevHome = () => {
         theme="dark"
         mode="horizontal"
         style={{ lineHeight: menuHeight + 'px' }}
-      >
-        {isSignedIn && <Menu.Item key="1" onClick={() => signOut(auth)} style={{ float: 'right' }}>Log Out</Menu.Item>}
-      </Menu>
+        items={isSignedIn ? menuItems : undefined}
+        onClick={() => signOut(auth)}
+      />
+
     </Header>
     <Content style={{ padding: '0 50px' }}>
       {isSignedIn ? <>
@@ -95,12 +88,11 @@ const DevHome = () => {
           supportedSubmitMethods={["get", "put", "post", "delete"]}
           docExpansion='list'
         />
-      </> : <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={auth} />}
+      </> : <LoginButton auth={auth} />}
     </Content>
     <Footer style={{ textAlign: 'center' }}>Finside</Footer>
-  </Layout>
+  </Layout >
 
 }
-
 
 export default DevHome;

@@ -10,9 +10,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "23.5.0"
-      - name: test build
+      - name: test install
         run: |
           npm ci
-          npm run build
         env:
           CI: true

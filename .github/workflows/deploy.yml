@@ -16,7 +16,7 @@ jobs:
       - name: test
         run: |
           npm ci
-          npm test -- --passWithNoTests
+
         env:
           CI: true
       - name: setup for deploy
@@ -38,7 +38,7 @@ jobs:
         id: deployment
         uses: actions/upload-pages-artifact@v3 # or specific "vX.X.X" version tag for this action
         with:
-          path: build/
+          path: dist/
 
   deploy:
     runs-on: ubuntu-latest

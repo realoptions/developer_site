@@ -25,3 +25,4 @@ yarn-error.log*
 openapi_v2.yml
 releases.json
 swagger_spec.json
+dist

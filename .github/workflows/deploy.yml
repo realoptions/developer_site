@@ -13,12 +13,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "23.5.0"
-      - name: test
-        run: |
-          npm ci
-
-        env:
-          CI: true
       - name: setup for deploy
         run: |
           for i in {1..5}; do curl -L -H "Authorization: token  ${{ secrets.ACCESS_TOKEN }}" -o ./scripts/releases.json https://api.github.com/repos/realoptions/option_price_faas/releases/latest && break || sleep 10; done
@@ -28,8 +22,6 @@ jobs:
           echo "VITE_FirebaseAPIKey=${{ secrets.FIREBASE_API_KEY }}" >> .env
           npm ci
           access_token=${{ secrets.ACCESS_TOKEN }} node ./scripts/downloadYML.js
-          rm -r node_modules
-          NODE_ENV=production npm ci
           npm run build
         env:
           CI: true

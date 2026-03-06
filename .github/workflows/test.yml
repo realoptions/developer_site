@@ -18,7 +18,6 @@ jobs:
           echo "VITE_TAG=$tag" >> .env
           echo "this is the tag #: $tag"
           echo "VITE_FirebaseAPIKey=${{ secrets.FIREBASE_API_KEY }}" >> .env
-          npm ci
           access_token=${{ secrets.ACCESS_TOKEN }} node ./scripts/downloadYML.js
           npm run build
         env:

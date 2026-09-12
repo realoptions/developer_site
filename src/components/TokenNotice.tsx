@@ -37,7 +37,7 @@ const TokenNotice = ({ token }: TokenNoticeProps) => (
       </>
     }
     type="info"
-    style={{ marginTop: 15 }}
+    className="token-notice"
   />
 );
 

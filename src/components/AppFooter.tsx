@@ -4,7 +4,7 @@ import { appTag } from "../env.ts";
 const { Footer } = Layout;
 
 const AppFooter = () => (
-  <Footer style={{ textAlign: "center" }}>
+  <Footer className="app-footer">
     {/* CI stamps VITE_TAG on every deploy; previously nothing read it, so the
         version never reached the page. */}
     Finside {" "}

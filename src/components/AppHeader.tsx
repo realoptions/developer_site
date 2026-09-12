@@ -1,7 +1,6 @@
 import { Layout, Menu } from "antd";
 import type { MenuProps } from "antd";
 import Logo from "./Logo.tsx";
-import { menuHeight, logoHeight, paddingTop } from "../styles.ts";
 
 const { Header } = Layout;
 
@@ -15,19 +14,21 @@ interface AppHeaderProps {
   onSignOut: () => void;
 }
 
+/**
+ * Flex header: brand at the leading edge, menu pushed to the trailing edge by
+ * `margin-inline-start: auto` (see .app-menu in App.css). Vertical centring is
+ * `align-items: center`, which replaces the old `paddingTop` that had to be
+ * derived from the logo and header heights to fake it.
+ */
 const AppHeader = ({ showSignOut, onSignOut }: AppHeaderProps) => (
-  <Header>
-    <div className="logo" style={{ paddingTop }}>
-      <Logo className="logo-primary" height={logoHeight} width={logoHeight} />
-    </div>
+  <Header className="app-header">
+    <span className="app-logo">
+      <Logo className="logo-primary" width="100%" height="100%" />
+    </span>
     <Menu
+      className="app-menu"
       theme="dark"
       mode="horizontal"
-      style={{
-        lineHeight: menuHeight + "px",
-        float: "right",
-        padding: "0px 10px",
-      }}
       items={showSignOut ? menuItems : undefined}
       onClick={onSignOut}
     />

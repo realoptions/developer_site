@@ -18,18 +18,18 @@ const DevHome = () => {
   const { auth, status, token, error, signOut } = useAuth();
 
   return (
-    <Layout className="layout" style={{ minHeight: "100vh" }}>
+    <Layout className="app-shell">
       <AppHeader
         showSignOut={status === "authenticated"}
         onSignOut={() => void signOut()}
       />
-      <Content style={{ padding: "0 50px" }}>
+      <Content className="app-content">
         {error && (
           <Alert
             type="error"
+            className="auth-alert"
             title="Authentication problem"
             description={`The last auth operation did not complete: ${error.message}`}
-            style={{ marginTop: 15 }}
           />
         )}
         {status === "loading" && <AuthLoading />}

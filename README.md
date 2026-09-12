@@ -147,13 +147,21 @@ GitHub API rate-limit relief for the spec download).
 ```
 src/
   index.tsx               Entry point; validates env before render.
-  App.tsx                 Layout, auth state, Swagger UI wiring.
+  App.tsx                 Composition root: wires useAuth to the components.
+  hooks/useAuth.ts        Auth state machine: loading / authenticated / signed-out.
+  components/
+    AppHeader.tsx         Header: brand mark + sign-out menu.
+    AppFooter.tsx         Footer with the deployed release tag.
+    AuthLoading.tsx       Rendered while the session is unresolved.
+    TokenNotice.tsx       Token explanation + Copy Token action.
+    ApiDocs.tsx           Swagger UI wrapper.
+    Logo.tsx              Brand mark.
+  FirebaseLogin.tsx       Provider sign-in buttons.
   env.ts                  All (typed) environment reads + validation.
   firebase.ts             Lazy, memoised Firebase app/auth singletons.
   copyToClipboard.ts      Async Clipboard API wrapper.
-  FirebaseLogin.tsx       Provider sign-in buttons.
-  components/Logo.tsx     Brand mark.
-  styles.ts               Shared layout constants.
+  index.css               Design tokens (spacing scale, header/logo sizes).
+  App.css                 App shell layout (flexbox).
   config.json             Non-secret Firebase project settings.
   swagger_spec.json       GENERATED — git-ignored.
 scripts/
@@ -162,6 +170,24 @@ scripts/
   outputTag.js            Print the release tag from releases.json.
   releases.json           GENERATED — git-ignored. Release metadata from the last spec run.
 ```
+
+## Styling
+
+Layout is flexbox. The spacing scale and layout dimensions live as CSS custom
+properties in `src/index.css` (`--space-xs` … `--space-4xl`, `--header-height`,
+`--logo-size`, and the fluid `--gutter`), and that file is the only place those
+numbers are written down.
+
+Reference the tokens instead of restating literals:
+
+```css
+.app-content { padding-inline: var(--gutter); }   /* good  */
+.app-content { padding-inline: 50px; }           /* bad   */
+```
+
+`--gutter` is a `clamp()`, so header, content and footer share one horizontal
+rhythm that tightens on phones and widens on desktops without breakpoint
+bookkeeping.
 
 ## Troubleshooting
 

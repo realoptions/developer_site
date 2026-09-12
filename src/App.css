@@ -1,13 +1,76 @@
-.App {
+/*
+ * App shell layout.
+ *
+ * Flexbox throughout. The previous version relied on CSS floats for both the
+ * logo (floated leading) and the header menu (floated trailing), which took
+ * them out of normal flow: nothing contained the floats, so the logo needed a
+ * hand-computed `paddingTop: (64 - 50) / 2` to look vertically centred, and
+ * the trailing menu could collide with the brand instead of being pushed away
+ * from it.
+ *
+ * All dimensions come from the tokens declared in src/index.css.
+ */
+
+/* Brand mark colour. Applied to the SVG paths via Logo's className. */
+.logo-primary {
+  fill: #eb2f96;
+}
+
+.app-shell {
+  /* dvh tracks the real viewport on mobile browsers whose chrome shrinks on
+     scroll; vh overflows there. */
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  height: var(--header-height);
+  padding-inline: var(--gutter);
+}
+
+.app-logo {
+  /* Never squeezed by the menu; the logo keeps its square aspect. */
+  flex: none;
+  inline-size: var(--logo-size);
+  block-size: var(--logo-size);
+  display: block;
+}
+
+/*
+ * margin-inline-start:auto is what replaces the trailing float. It absorbs the
+ * remaining space, so the menu sits at the trailing edge and can never overlap
+ * the brand. min-width:0 lets it shrink (and let antd's own overflow menu kick
+ * in) rather than pushing the header wider than the viewport.
+ */
+.app-menu {
+  margin-inline-start: auto;
+  min-width: 0;
+  line-height: var(--header-height);
+}
+
+.app-content {
+  padding-inline: var(--gutter);
+}
+
+.app-footer {
+  padding-inline: var(--gutter);
   text-align: center;
 }
 
-.logo-primary {
-  fill: #eb2f96
+/* Space the auth notice and auth error away from whatever sits above them. */
+.token-notice,
+.auth-alert {
+  margin-block-start: var(--space-lg);
 }
 
-.logo {
-  width: 50px;
-  height: 50px;
-  float: left;
+.auth-loading {
+  padding-block: var(--space-4xl);
+  text-align: center;
+}
+
+.auth-loading-status {
+  margin-block-start: var(--space-md);
 }

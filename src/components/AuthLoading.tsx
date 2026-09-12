@@ -7,9 +7,9 @@ import { Spin } from "antd";
  * signed out and sees the login buttons before the docs appear.
  */
 const AuthLoading = () => (
-  <div style={{ textAlign: "center", padding: "4rem 0" }}>
+  <div className="auth-loading">
     <Spin size="large" />
-    <div style={{ marginTop: 12 }}>Checking your session...</div>
+    <div className="auth-loading-status">Checking your session...</div>
   </div>
 );
 

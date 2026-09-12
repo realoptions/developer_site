@@ -227,6 +227,8 @@ src/
   env.ts                  All (typed) environment reads + validation.
   firebase.ts             Lazy, memoised Firebase app/auth singletons.
   copyToClipboard.ts      Async Clipboard API wrapper.
+  theme.ts                EVERY brand/accent colour, per light/dark mode.
+  wcag.ts               Contrast maths used to assert the palette is AA.
   index.css               Design tokens (spacing scale, header/logo sizes).
   App.css                 App shell layout (flexbox).
   config.json             Non-secret Firebase project settings.
@@ -234,6 +236,7 @@ src/
 scripts/
   downloadYML.js          Fetch + validate the OpenAPI spec.
   checkSpec.js            Preflight guard run before dev/build.
+  checkColorTokens.js     Fails the build on any colour literal outside theme.ts.
   outputTag.js            Print the release tag from releases.json.
   releases.json           GENERATED — git-ignored. Release metadata from the last spec run.
 ```
@@ -255,6 +258,40 @@ Reference the tokens instead of restating literals:
 `--gutter` is a `clamp()`, so header, content and footer share one horizontal
 rhythm that tightens on phones and widens on desktops without breakpoint
 bookkeeping.
+
+### Colour
+
+**`src/theme.ts` is the only file in `src/` that contains a colour literal.** It
+defines the brand palette per light/dark mode and feeds it to both consumers:
+
+- antd components, via `<ConfigProvider theme={themeFor(mode)}>` in `src/index.tsx`
+- our own stylesheet, via CSS custom properties applied to the document element
+  by `applyThemeCssVars(mode)`
+
+Re-skinning the app means editing `theme.ts` and nothing else. `npm run
+lint:colors` (also run by `predev`/`prebuild` and CI) fails the build if a hex or
+`rgb()` value reappears anywhere else in `src`, so the invariant cannot rot.
+
+```css
+.logo-primary { fill: var(--brand-accent); }   /* good */
+.logo-primary { fill: #eb2f96; }              /* fails lint:colors */
+```
+
+There is deliberately **no fallback value** in `var(...)`. A fallback would keep
+the old colour alive when a token is missing, which is how a hardcoded value
+smuggles itself back in.
+
+**The brand colour is not the button colour.** `BRAND.accent` (`#eb2f96`) is
+3.90:1 on white: enough for the logo (WCAG asks 3:1 of non-text content), not
+enough for text. `BRAND.action` (`#c41d7f`) is the same hue darkened until white
+label text clears 4.5:1 — in **all three states** (rest 5.48, hover 4.97,
+active 7.70), because WCAG applies to hover and active too, not just rest.
+`src/theme.test.ts` asserts every pair in both modes, so a palette edit that
+breaks contrast fails CI rather than shipping an unreadable button. `wcag.ts` is
+the contrast maths behind that check; it is not used at runtime.
+
+Mode resolution: a stored `theme` preference wins, else `prefers-color-scheme`,
+else light (`resolveThemeMode`).
 
 ## Troubleshooting
 

@@ -46,7 +46,7 @@ for (const width of WIDTHS) {
       await page.viewport(width, 900);
       const { unmount } = await render(
         <Layout className="app-shell">
-          <AppHeader showSignOut onSignOut={() => {}} />
+          <AppHeader menuTheme="dark" showSignOut onSignOut={() => {}} />
           <Content className="app-content">
             <TokenNotice token="tok" />
           </Content>
@@ -98,7 +98,7 @@ describe("loading and signed-out views stay inside the viewport", () => {
       await page.viewport(width, 900);
       const { unmount } = await render(
         <Layout className="app-shell">
-          <AppHeader showSignOut={false} onSignOut={() => {}} />
+          <AppHeader menuTheme="dark" showSignOut={false} onSignOut={() => {}} />
           <Content className="app-content">
             <AuthLoading />
           </Content>

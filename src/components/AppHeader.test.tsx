@@ -18,7 +18,7 @@ const clickMenu = (label: string) => {
 
 describe("brand", () => {
   it("renders the logo in the leading slot", async () => {
-    await render(<AppHeader showSignOut={false} onSignOut={vi.fn()} />);
+    await render(<AppHeader showSignOut={false} onSignOut={vi.fn()} menuTheme="dark" />);
     expect(document.querySelector(".app-logo svg")).toBeTruthy();
     // Logo applies the theme hook to its inner <g> (whose fill the paths
     // inherit), not to the <svg> element itself.
@@ -28,28 +28,28 @@ describe("brand", () => {
 
 describe("the sign-out control tracks session state", () => {
   it("offers Log Out once there is a session to end", async () => {
-    await render(<AppHeader showSignOut={true} onSignOut={vi.fn()} />);
+    await render(<AppHeader showSignOut={true} onSignOut={vi.fn()} menuTheme="dark" />);
     const items = menuItems();
     expect(items).toHaveLength(1);
     expect(items[0].textContent).toContain("Log Out");
   });
 
   it("offers no menu item when nobody is signed in", async () => {
-    await render(<AppHeader showSignOut={false} onSignOut={vi.fn()} />);
+    await render(<AppHeader showSignOut={false} onSignOut={vi.fn()} menuTheme="dark" />);
     // Nothing to sign out of: an empty menu is not the same as a hidden one.
     expect(menuItems()).toHaveLength(0);
   });
 
   it("invokes onSignOut exactly once per click", async () => {
     const onSignOut = vi.fn();
-    await render(<AppHeader showSignOut={true} onSignOut={onSignOut} />);
+    await render(<AppHeader showSignOut={true} onSignOut={onSignOut} menuTheme="dark" />);
     await clickMenu("Log Out");
     await vi.waitFor(() => expect(onSignOut).toHaveBeenCalledTimes(1));
   });
 
   it("clicking with no session cannot fire onSignOut", async () => {
     const onSignOut = vi.fn();
-    await render(<AppHeader showSignOut={false} onSignOut={onSignOut} />);
+    await render(<AppHeader menuTheme="dark" showSignOut={false} onSignOut={onSignOut} />);
     expect(menuItems()).toHaveLength(0);
     await new Promise((r) => setTimeout(r, 30));
     expect(onSignOut).not.toHaveBeenCalled();
@@ -61,7 +61,7 @@ describe("header geometry (signed-in, the wider case)", () => {
     it(`stays inside the viewport at ${vw}px`, async () => {
       await page.viewport(vw, 900);
       const { unmount } = await render(
-        <AppHeader showSignOut={true} onSignOut={vi.fn()} />,
+        <AppHeader showSignOut={true} onSignOut={vi.fn()} menuTheme="dark" />,
       );
 
       const header = document.querySelector(".app-header")!;
@@ -83,7 +83,7 @@ describe("header geometry (signed-in, the wider case)", () => {
   it("keeps the header band at the --header-height token", async () => {
     await page.viewport(1440, 900);
     const { unmount } = await render(
-      <AppHeader showSignOut={true} onSignOut={vi.fn()} />,
+      <AppHeader showSignOut={true} onSignOut={vi.fn()} menuTheme="dark" />,
     );
     const header = document.querySelector(".app-header")!;
     const token =

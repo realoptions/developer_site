@@ -11,9 +11,14 @@
  * All dimensions come from the tokens declared in src/index.css.
  */
 
-/* Brand mark colour. Applied to the SVG paths via Logo's className. */
+/*
+ * Brand mark colour. The value comes from src/theme.ts, applied to the document
+ * element by src/index.tsx - there is deliberately no fallback hex here, so a
+ * missing token shows up as a visibly wrong colour instead of quietly keeping the
+ * old one and letting a hardcoded value survive outside the theme file.
+ */
 .logo-primary {
-  fill: #eb2f96;
+  fill: var(--brand-accent);
 }
 
 /*
@@ -50,6 +55,8 @@
   gap: var(--space-md);
   height: var(--header-height);
   padding-inline: var(--gutter);
+  background: var(--header-bg);
+  color: var(--header-text);
 }
 
 .app-logo {

@@ -7,6 +7,7 @@ import AuthLoading from "./components/AuthLoading.tsx";
 import LoginPanel from "./components/LoginPanel.tsx";
 import TokenNotice from "./components/TokenNotice.tsx";
 import { useAuth } from "./hooks/useAuth.ts";
+import { headerMenuTheme, resolveThemeMode } from "./theme.ts";
 
 const { Content } = Layout;
 
@@ -16,12 +17,19 @@ const { Content } = Layout;
  */
 const DevHome = () => {
   const { status, token, error, signOut, signIn, pendingProvider } = useAuth();
+  const mode = resolveThemeMode(
+    typeof localStorage === "undefined" ? null : localStorage.getItem("theme"),
+    typeof matchMedia === "function"
+      ? matchMedia("(prefers-color-scheme: dark)").matches
+      : false,
+  );
 
   return (
     <Layout className="app-shell">
       <AppHeader
         showSignOut={status === "authenticated"}
         onSignOut={() => void signOut()}
+        menuTheme={headerMenuTheme(mode)}
       />
       <Content className="app-content">
         {error && (

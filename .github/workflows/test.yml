@@ -20,6 +20,10 @@ jobs:
         run: npm run spec
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      - name: colour-token guard
+        # Brand/accent colours must live only in src/theme.ts. Fails the build if a
+        # colour literal reappears anywhere else in src.
+        run: npm run lint:colors
       - name: typecheck
         run: npm run typecheck
       - name: install browser test dependencies

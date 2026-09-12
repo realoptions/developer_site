@@ -46,7 +46,8 @@ with that remedy rather than an unresolved-import error.
 | `npm run build`       | Production build to `dist/` (runs the spec preflight first). |
 | `npm run preview`     | Serve the built `dist/` locally.                          |
 | `npm run spec`        | Download the OpenAPI spec and write it as JSON.           |
-| `npm run verify`      | The whole gate: colour guard + typecheck + tests.          |
+| `npm run verify`      | The whole gate: guards + typecheck + tests.                |
+| `npm run lint`        | Both source guards (`lint:colors` + `lint:theme`).         |
 | `npm run typecheck`   | `tsc -p tsconfig.app.json --noEmit`.                      |
 | `npm test`            | Single run of the browser test suite.                     |
 | `npm run test:watch`  | Watch mode for the same suite.                            |
@@ -305,8 +306,19 @@ active 7.70), because WCAG applies to hover and active too, not just rest.
 breaks contrast fails CI rather than shipping an unreadable button. `wcag.ts` is
 the contrast maths behind that check; it is not used at runtime.
 
-Mode resolution: a stored `theme` preference wins, else `prefers-color-scheme`,
-else light (`resolveThemeMode`).
+Mode resolution lives in `readThemeMode()`, which is the **only** place in `src/`
+permitted to touch `localStorage` or `matchMedia`. It is read once in
+`src/index.tsx` and passed down as a value — components receive the resolved mode
+instead of deriving it, because two components independently resolving it feed
+different sinks (CSS custom properties vs antd tokens) and a half-updated theme
+reads as a styling bug rather than the wiring bug it is.
+
+`npm run lint:theme` enforces that: any `localStorage`, `sessionStorage` or
+`matchMedia` reference outside `src/theme.ts` fails the build. `readThemeMode`
+takes its environment as an optional argument so tests can drive both branches
+without stubbing globals, and its throw-handling sits at the call site — Safari in
+private mode throws on storage *access* rather than returning null, and an
+uncaught throw there would stop the app rendering at all.
 
 ## Troubleshooting
 

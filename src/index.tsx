@@ -4,16 +4,13 @@ import { ConfigProvider } from "antd";
 import "./index.css";
 import App from "./App.tsx";
 import { assertEnv } from "./env.ts";
-import { applyThemeCssVars, resolveThemeMode, themeFor } from "./theme.ts";
+import { applyThemeCssVars, readThemeMode, themeFor } from "./theme.ts";
 
 const root = createRoot(document.getElementById("root") as HTMLElement);
 
-const mode = resolveThemeMode(
-  globalThis.localStorage?.getItem("theme"),
-  typeof matchMedia === "function"
-    ? matchMedia("(prefers-color-scheme: dark)").matches
-    : false,
-);
+// Resolved exactly once, here, and passed down. Nothing else in src/ reads the
+// stored preference or asks the OS what it prefers.
+const mode = readThemeMode();
 
 // Applied before any render, and outside the try/catch, so the configuration-error
 // panel below is themed too rather than arriving unstyled.
@@ -27,7 +24,7 @@ try {
   root.render(
     <StrictMode>
       <ConfigProvider theme={themeFor(mode)}>
-        <App />
+        <App themeMode={mode} />
       </ConfigProvider>
     </StrictMode>,
   );

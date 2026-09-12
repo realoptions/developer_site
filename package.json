@@ -15,14 +15,16 @@
     "build": "vite build",
     "preview": "vite preview",
     "spec": "node ./scripts/downloadYML.js",
-    "predev": "node ./scripts/checkSpec.js && node ./scripts/checkColorTokens.js",
-    "prebuild": "node ./scripts/checkSpec.js && node ./scripts/checkColorTokens.js",
-    "verify": "npm run lint:colors && npm run typecheck && npm test",
+    "predev": "node ./scripts/checkSpec.js && npm run lint",
+    "prebuild": "node ./scripts/checkSpec.js && npm run lint",
+    "verify": "npm run lint && npm run typecheck && npm test",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
     "test": "vitest run --config vitetest.config.ts",
     "test:watch": "vitest --config vitetest.config.ts",
     "test:coverage": "vitest run --config vitetest.config.ts --coverage",
-    "lint:colors": "node ./scripts/checkColorTokens.js"
+    "lint:colors": "node ./scripts/checkColorTokens.js",
+    "lint:theme": "node ./scripts/checkThemeSource.js",
+    "lint": "npm run lint:colors && npm run lint:theme"
   },
   "browserslist": {
     "production": [

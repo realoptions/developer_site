@@ -50,7 +50,7 @@ const alertText = () =>
 
 describe("sign-in failure reaches the screen", () => {
   it("clicking a provider, failing, shows the mapped message", async () => {
-    const { container } = await render(<App />);
+    const { container } = await render(<App themeMode="light" />);
 
     // Resolve the session as signed-out so the login panel mounts.
     expect(h.listeners.size).toBe(1);
@@ -80,7 +80,7 @@ describe("sign-in failure reaches the screen", () => {
 
   it("does not stack requests while a popup is in flight", async () => {
     h.signInWithPopup.mockClear();
-    const { rerender } = await render(<App />);
+    const { rerender } = await render(<App themeMode="light" />);
     h.fire(null);
     await expect.poll(() => visibleButtons().length).toBe(3);
 

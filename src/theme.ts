@@ -125,6 +125,9 @@ export function headerMenuTheme(mode: ThemeMode): "light" | "dark" {
 /**
  * Resolve the mode to render: an explicit stored choice wins, otherwise the
  * operating system's preference, otherwise light.
+ *
+ * Pure on purpose - it takes its inputs rather than reaching for browser globals,
+ * so both branches are testable without stubbing anything.
  */
 export function resolveThemeMode(
   stored?: string | null,
@@ -132,4 +135,55 @@ export function resolveThemeMode(
 ): ThemeMode {
   if (stored === "light" || stored === "dark") return stored;
   return prefersDark ? "dark" : "light";
+}
+
+export const THEME_STORAGE_KEY = "theme";
+
+/** Injectable so `readThemeMode` can be tested without touching real globals. */
+export interface ThemeEnv {
+  getItem: (key: string) => string | null;
+  prefersDark: () => boolean;
+}
+
+/**
+ * Read the theme mode from the browser.
+ *
+ * This is the ONLY place in `src/` allowed to touch `localStorage` or
+ * `matchMedia` - scripts/checkThemeSource.js enforces it. Before this, index.tsx
+ * and App.tsx each resolved the mode independently (with two different defensive
+ * idioms for the same read), so a future edit to one could leave the CSS custom
+ * properties and the antd header/menu scheme disagreeing.
+ *
+ * The safety nets sit at the CALL SITE rather than inside the default helpers, so
+ * they protect an injected implementation just as well as the built-in one.
+ * Safari in private mode throws on `localStorage` access rather than returning
+ * null; an uncaught throw here would stop the app rendering at all.
+ */
+export function readThemeMode(env?: Partial<ThemeEnv>): ThemeMode {
+  const getItem =
+    env?.getItem ??
+    ((key: string): string | null =>
+      typeof localStorage === "undefined" ? null : localStorage.getItem(key));
+
+  const prefersDark =
+    env?.prefersDark ??
+    ((): boolean =>
+      typeof matchMedia === "function" &&
+      matchMedia("(prefers-color-scheme: dark)").matches);
+
+  let stored: string | null = null;
+  try {
+    stored = getItem(THEME_STORAGE_KEY);
+  } catch {
+    stored = null;
+  }
+
+  let systemPrefersDark = false;
+  try {
+    systemPrefersDark = prefersDark();
+  } catch {
+    systemPrefersDark = false;
+  }
+
+  return resolveThemeMode(stored, systemPrefersDark);
 }

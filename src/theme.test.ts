@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   BRAND,
+  THEME_STORAGE_KEY,
+  readThemeMode,
   PALETTES,
   cssVariables,
   headerMenuTheme,
@@ -118,5 +120,58 @@ describe("cssVariables / mode resolution", () => {
     for (const mode of ["light", "dark"] as ThemeMode[]) {
       expect(headerMenuTheme(mode)).toBe(PALETTES[mode].headerMenuTheme);
     }
+  });
+});
+
+describe("readThemeMode: the single browser read", () => {
+  const env = (stored: string | null, dark: boolean) => ({
+    getItem: () => stored,
+    prefersDark: () => dark,
+  });
+
+  it("prefers the stored choice over the system", () => {
+    expect(readThemeMode(env("light", true))).toBe("light");
+    expect(readThemeMode(env("dark", false))).toBe("dark");
+  });
+
+  it("falls back to the system, then light", () => {
+    expect(readThemeMode(env(null, true))).toBe("dark");
+    expect(readThemeMode(env(null, false))).toBe("light");
+    expect(readThemeMode(env("nonsense", true))).toBe("dark");
+  });
+
+  it("survives storage that throws (Safari private mode)", () => {
+    // Safari throws on localStorage *access* in private mode rather than
+    // returning null; an unprotected read here would take down the whole app
+    // before it ever rendered.
+    const hostile = {
+      getItem: () => {
+        throw new Error("SecurityError: storage is blocked");
+      },
+      prefersDark: () => true,
+    };
+    expect(readThemeMode(hostile)).toBe("dark");
+  });
+
+  it("survives a missing/broken matchMedia", () => {
+    const broken = {
+      getItem: () => null,
+      prefersDark: () => {
+        throw new Error("matchMedia unavailable");
+      },
+    };
+    expect(readThemeMode(broken)).toBe("light");
+  });
+
+  it("reads the documented storage key", () => {
+    const seen: string[] = [];
+    readThemeMode({
+      getItem: (k) => {
+        seen.push(k);
+        return null;
+      },
+      prefersDark: () => false,
+    });
+    expect(seen).toEqual([THEME_STORAGE_KEY]);
   });
 });

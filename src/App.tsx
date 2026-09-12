@@ -10,12 +10,23 @@ import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
 import Logo from "./components/Logo.tsx";
 import { menuHeight, logoHeight, paddingTop } from "./styles.ts";
-import { copyToClipboard } from "./copyToClipboard.ts";
+import { copyToClipboard, ClipboardUnsupportedError } from "./copyToClipboard.ts";
 type MenuItem = Required<MenuProps>["items"][number];
 import apiSpec from "./swagger_spec.json";
 const { Header, Content, Footer } = Layout;
-const info = () => {
-  message.info("Token copied");
+const handleCopyToken = (token: string) => {
+  void copyToClipboard(token)
+    .then(() => message.success("Token copied"))
+    .catch((error: unknown) => {
+      // Log the original error (NotAllowedError, missing user gesture, etc.) for
+      // diagnosis, while the user gets an actionable message.
+      console.error("copyToClipboard failed", error);
+      message.error(
+        error instanceof ClipboardUnsupportedError
+          ? "Clipboard unavailable in this context - please copy the token manually."
+          : "Copy failed - clipboard access was blocked. Please copy the token manually.",
+      );
+    });
 };
 const Description = ({ token }: { token: string }) => (
   <div>
@@ -26,10 +37,7 @@ const Description = ({ token }: { token: string }) => (
     <Button
       type="primary"
       icon={<Copy />}
-      onClick={() => {
-        copyToClipboard(token);
-        info();
-      }}
+      onClick={() => handleCopyToken(token)}
     >
       Copy Token
     </Button>

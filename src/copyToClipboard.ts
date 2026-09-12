@@ -1,34 +1,50 @@
-//https://gist.github.com/interactiveRob/39a3eb36c7403f1ba43c190fc88f972f
-export const copyToClipboard = (str: string) => {
-  /* ——— Derived from: https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f
-             improved to add iOS device compatibility——— */
-  const el = document.createElement("textarea"); // Create a <textarea> element
+/**
+ * Copy text to the clipboard via the async Clipboard API.
+ *
+ * This replaces a vendored gist built on the deprecated `document.execCommand('copy')`.
+ * That approach had to inject a hidden <textarea>, clobber the user's existing text
+ * selection, lean on four non-null assertions against `document.getSelection()`, and
+ * it could not report failure — so the UI always claimed the token had been copied.
+ *
+ * It also contained outright dead code: `el.contentEditable` and `el.readOnly` were
+ * saved from a *freshly created* element (so always the defaults) and restored after
+ * that element had already been removed from the DOM.
+ *
+ * `navigator.clipboard.writeText` needs none of that: no DOM injection, no selection
+ * to trample, and it reports failures asynchronously.
+ *
+ * A legacy `execCommand` fallback is deliberately NOT kept: every browser in this
+ * project's browserslist supports the async API ("not dead" excludes IE11 and legacy
+ * Safari), and both deploy targets are secure contexts — GitHub Pages serves HTTPS and
+ * `vite dev` runs on localhost — so the fallback would only add deprecated surface for
+ * browsers this project does not support.
+ *
+ * @throws {ClipboardUnsupportedError} if the Clipboard API is unavailable (e.g. an
+ *         insecure, non-HTTPS context).
+ * @throws {Error} if the write is refused — typically a `NotAllowedError` when the
+ *         user denies clipboard permission or there is no active user gesture.
+ */
 
-  let storeContentEditable = el.contentEditable;
-  let storeReadOnly = el.readOnly;
+/** Thrown when this browser or context exposes no clipboard API at all. */
+export class ClipboardUnsupportedError extends Error {
+  constructor(
+    message = "This browser cannot access the clipboard. The Clipboard API requires a secure (HTTPS or localhost) context.",
+  ) {
+    super(message);
+    this.name = "ClipboardUnsupportedError";
+  }
+}
 
-  el.value = str; // Set its value to the string that you want copied
-  el.contentEditable = "true";
-  el.readOnly = false;
-  el.setAttribute("readonly", "false"); // Make it readonly false for iOS compatability
-  el.setAttribute("contenteditable", "true"); // Make it editable for iOS
-  el.style.position = "absolute";
-  el.style.left = "-9999px"; // Move outside the screen to make it invisible
-  document.body.appendChild(el); // Append the <textarea> element to the HTML document
-  const selected =
-    document.getSelection()!.rangeCount > 0 // Check if there is any content selected previously
-      ? document.getSelection()!.getRangeAt(0) // Store selection if found
-      : false; // Mark as false to know no selection existed before
-  el.select(); // Select the <textarea> content
-  el.setSelectionRange(0, 999999);
-  document.execCommand("copy"); // Copy - only works as a result of a user action (e.g. click events)
-  document.body.removeChild(el); // Remove the <textarea> element
-  if (selected) {
-    // If a selection existed before copying
-    document.getSelection()!.removeAllRanges(); // Unselect everything on the HTML document
-    document.getSelection()!.addRange(selected); // Restore the original selection
+/**
+ * Resolves once `text` is on the clipboard; rejects if it could not be written so
+ * the caller can report an honest failure instead of always claiming success.
+ */
+export const copyToClipboard = async (text: string): Promise<void> => {
+  const clipboard = globalThis.navigator?.clipboard;
+
+  if (typeof clipboard?.writeText !== "function") {
+    throw new ClipboardUnsupportedError();
   }
 
-  el.contentEditable = storeContentEditable;
-  el.readOnly = storeReadOnly;
+  await clipboard.writeText(text);
 };

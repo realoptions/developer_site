@@ -1,9 +1,15 @@
-import React from 'react'
+// The react-jsx runtime supplies JSX, so no React import is needed here.
+type LogoProps = {
+    height?: string | number;
+    width?: string | number;
+    className?: string;
+}
+
 const Logo = ({
     height = '1em',
     width = '1em',
     className = 'logo-primary'
-}: { height: string | number, width: string | number, className: string }) => (
+}: LogoProps) => (
     <svg
         xmlns="http://www.w3.org/2000/svg"
         width={width}

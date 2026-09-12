@@ -1,25 +1,19 @@
 import { useState, useEffect } from "react";
 import { Layout, Menu, Button, message, Alert } from "antd";
 import "./App.css";
-import { initializeApp } from "firebase/app";
-import { getAuth, onAuthStateChanged, signOut, type User } from "firebase/auth";
+import { onAuthStateChanged, signOut, type User } from "firebase/auth";
+import { getFirebaseAuth } from "./firebase.ts";
 import LoginButton from "./FirebaseLogin.tsx";
 import { CopyOutlined as Copy } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
-import Logo from "./Logo.tsx";
-import { menuHeight, logoHeight, paddingTop } from "./styles.tsx";
-import { copyToClipboard } from "./copyToClipboard.tsx";
+import Logo from "./components/Logo.tsx";
+import { menuHeight, logoHeight, paddingTop } from "./styles.ts";
+import { copyToClipboard } from "./copyToClipboard.ts";
 type MenuItem = Required<MenuProps>["items"][number];
 import apiSpec from "./swagger_spec.json";
-import config from "./config.json";
 const { Header, Content, Footer } = Layout;
-const firebase = initializeApp({
-  ...config,
-  apiKey: import.meta.env.VITE_FirebaseAPIKey, // process.env.REACT_APP_FirebaseAPIKey,
-});
-const auth = getAuth(firebase);
 const info = () => {
   message.info("Token copied");
 };
@@ -59,6 +53,8 @@ const menuItems: MenuItem[] = [{ key: "1", label: "Log Out" }];
 const DevHome = () => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState("");
+  // Lazy + memoised inside the module, so this is a cached read after the first call.
+  const auth = getFirebaseAuth();
 
   useEffect(() => {
     const unregisterAuthObserver = onAuthStateChanged(auth, (user) => {

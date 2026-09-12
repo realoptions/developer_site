@@ -1,127 +1,47 @@
-import { useState, useEffect } from "react";
-import { Layout, Menu, Button, message, Alert } from "antd";
+import { Alert, Layout } from "antd";
 import "./App.css";
-import { onAuthStateChanged, signOut, type User } from "firebase/auth";
-import { getFirebaseAuth } from "./firebase.ts";
 import LoginButton from "./FirebaseLogin.tsx";
-import { CopyOutlined as Copy } from "@ant-design/icons";
-import type { MenuProps } from "antd";
-import SwaggerUI from "swagger-ui-react";
-import "swagger-ui-react/swagger-ui.css";
-import Logo from "./components/Logo.tsx";
-import { menuHeight, logoHeight, paddingTop } from "./styles.ts";
-import { copyToClipboard, ClipboardUnsupportedError } from "./copyToClipboard.ts";
-import { appTag } from "./env.ts";
-type MenuItem = Required<MenuProps>["items"][number];
-import apiSpec from "./swagger_spec.json";
-const { Header, Content, Footer } = Layout;
-const handleCopyToken = (token: string) => {
-  void copyToClipboard(token)
-    .then(() => message.success("Token copied"))
-    .catch((error: unknown) => {
-      // Log the original error (NotAllowedError, missing user gesture, etc.) for
-      // diagnosis, while the user gets an actionable message.
-      console.error("copyToClipboard failed", error);
-      message.error(
-        error instanceof ClipboardUnsupportedError
-          ? "Clipboard unavailable in this context - please copy the token manually."
-          : "Copy failed - clipboard access was blocked. Please copy the token manually.",
-      );
-    });
-};
-const Description = ({ token }: { token: string }) => (
-  <div>
-    <p>
-      The API uses tokens provided through OAUTH2 Providers. To authenticate the
-      API, copy the token and paste it into the "JWT (apiKey)" box.
-    </p>
-    <Button
-      type="primary"
-      icon={<Copy />}
-      onClick={() => handleCopyToken(token)}
-    >
-      Copy Token
-    </Button>
-  </div>
-);
+import ApiDocs from "./components/ApiDocs.tsx";
+import AppFooter from "./components/AppFooter.tsx";
+import AppHeader from "./components/AppHeader.tsx";
+import AuthLoading from "./components/AuthLoading.tsx";
+import TokenNotice from "./components/TokenNotice.tsx";
+import { useAuth } from "./hooks/useAuth.ts";
 
-const explanationStyle = { marginTop: 15 };
-const Explanation = ({ token }: { token: string }) => (
-  <Alert
-    title="Authentication"
-    description={<Description token={token} />}
-    type="info"
-    style={explanationStyle}
-  />
-);
+const { Content } = Layout;
 
-const menuItems: MenuItem[] = [{ key: "1", label: "Log Out" }];
-
-//onClick={() => signOut(auth)} style={{ float: 'right' }}>Log Out
-
+/**
+ * Composition only. Auth state lives in `useAuth`, presentation in
+ * `src/components/*`; no Firebase call, observer or token handling appears here.
+ */
 const DevHome = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState("");
-  // Lazy + memoised inside the module, so this is a cached read after the first call.
-  const auth = getFirebaseAuth();
+  const { auth, status, token, error, signOut } = useAuth();
 
-  useEffect(() => {
-    const unregisterAuthObserver = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        user
-          .getIdToken(true)
-          .then(setToken)
-          .catch((err) => console.log(err));
-      } else {
-        setToken("");
-      }
-      setUser(user);
-    });
-    return () => unregisterAuthObserver(); // Make sure we un-register Firebase observers when the component unmounts.
-  }, []);
-  const isSignedIn = !!user;
   return (
     <Layout className="layout" style={{ minHeight: "100vh" }}>
-      <Header>
-        <div className="logo" style={{ paddingTop }}>
-          <Logo
-            className="logo-primary"
-            height={logoHeight}
-            width={logoHeight}
-          />
-        </div>
-        <Menu
-          theme="dark"
-          mode="horizontal"
-          style={{
-            lineHeight: menuHeight + "px",
-            float: "right",
-            padding: "0px 10px",
-          }}
-          items={isSignedIn ? menuItems : undefined}
-          onClick={() => signOut(auth)}
-        />
-      </Header>
+      <AppHeader
+        showSignOut={status === "authenticated"}
+        onSignOut={() => void signOut()}
+      />
       <Content style={{ padding: "0 50px" }}>
-        {isSignedIn ? (
-          <>
-            <Explanation token={token} />
-            <SwaggerUI
-              spec={apiSpec}
-              supportedSubmitMethods={["get", "put", "post", "delete"]}
-              docExpansion="list"
-            />
-          </>
-        ) : (
-          <LoginButton auth={auth} />
+        {error && (
+          <Alert
+            type="error"
+            title="Authentication problem"
+            description={`The last auth operation did not complete: ${error.message}`}
+            style={{ marginTop: 15 }}
+          />
         )}
+        {status === "loading" && <AuthLoading />}
+        {status === "authenticated" && (
+          <>
+            <TokenNotice token={token} />
+            <ApiDocs />
+          </>
+        )}
+        {status === "signed-out" && <LoginButton auth={auth} />}
       </Content>
-      <Footer style={{ textAlign: "center" }}>
-        {/* CI stamps VITE_TAG on every deploy; previously nothing read it, so the
-            version never reached the page. */}
-        Finside {" "}
-        <span title="Deployed release tag">&middot; {appTag}</span>
-      </Footer>
+      <AppFooter />
     </Layout>
   );
 };

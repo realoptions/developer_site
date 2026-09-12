@@ -17,7 +17,7 @@
     "spec": "node ./scripts/downloadYML.js",
     "predev": "node ./scripts/checkSpec.js && npm run lint",
     "prebuild": "node ./scripts/checkSpec.js && npm run lint",
-    "verify": "npm run lint && npm run typecheck && npm test",
+    "verify": "npm run lint && npm run typecheck && npm run test:coverage",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
     "test": "vitest run --config vitetest.config.ts",
     "test:watch": "vitest --config vitetest.config.ts",

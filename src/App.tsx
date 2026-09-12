@@ -11,6 +11,7 @@ import "swagger-ui-react/swagger-ui.css";
 import Logo from "./components/Logo.tsx";
 import { menuHeight, logoHeight, paddingTop } from "./styles.ts";
 import { copyToClipboard, ClipboardUnsupportedError } from "./copyToClipboard.ts";
+import { appTag } from "./env.ts";
 type MenuItem = Required<MenuProps>["items"][number];
 import apiSpec from "./swagger_spec.json";
 const { Header, Content, Footer } = Layout;
@@ -115,7 +116,12 @@ const DevHome = () => {
           <LoginButton auth={auth} />
         )}
       </Content>
-      <Footer style={{ textAlign: "center" }}>Finside</Footer>
+      <Footer style={{ textAlign: "center" }}>
+        {/* CI stamps VITE_TAG on every deploy; previously nothing read it, so the
+            version never reached the page. */}
+        Finside {" "}
+        <span title="Deployed release tag">&middot; {appTag}</span>
+      </Footer>
     </Layout>
   );
 };

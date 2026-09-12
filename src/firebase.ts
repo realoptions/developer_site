@@ -1,6 +1,7 @@
 import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
 import config from "./config.json";
+import { requireFirebaseApiKey } from "./env.ts";
 
 /**
  * Firebase wiring lives here so that *importing* App.tsx performs no side effects.
@@ -12,12 +13,14 @@ import config from "./config.json";
  *   - a bad configuration crashed at import time rather than at first use.
  *
  * Non-secret project settings come from src/config.json; the API key is injected at
- * build time from VITE_FirebaseAPIKey (never committed).
+ * build time as VITE_FirebaseAPIKey (never committed) and read through src/env.ts,
+ * which validates it. That is why this is a function rather than a const object:
+ * evaluating the check at module scope would move the crash back to import time.
  */
-const firebaseOptions = {
+const firebaseOptions = () => ({
   ...config,
-  apiKey: import.meta.env.VITE_FirebaseAPIKey,
-};
+  apiKey: requireFirebaseApiKey(),
+});
 
 let cachedApp: FirebaseApp | undefined;
 let cachedAuth: Auth | undefined;
@@ -27,7 +30,7 @@ export function getFirebaseApp(): FirebaseApp {
   if (!cachedApp) {
     // Reuse an existing instance if one is already present: React StrictMode invokes
     // components twice in development, and a test harness may initialise Firebase itself.
-    cachedApp = getApps().length > 0 ? getApp() : initializeApp(firebaseOptions);
+    cachedApp = getApps().length > 0 ? getApp() : initializeApp(firebaseOptions());
   }
   return cachedApp;
 }

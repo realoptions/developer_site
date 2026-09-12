@@ -151,11 +151,49 @@ Tests run in a **real Chromium browser** under
 
 ```bash
 npx playwright install --with-deps chromium   # once
-npm test
+npm test                                     # the suite
+npm run test:coverage                        # same, with a coverage report
 ```
 
-Current coverage is focused on the env/validation and clipboard modules plus a
-harness smoke test. Run `npm run typecheck` alongside `npm test`; CI enforces both.
+A failing test exits non-zero and therefore fails the CI build. So does a run that
+collects **zero** tests — the suite cannot quietly become empty and still report
+green.
+
+### What the suite covers
+
+| File | Covers |
+| --- | --- |
+| `hooks/useAuth.test.tsx` | Auth state machine: loading vs authenticated vs signed-out, token fetch failure, unsubscribe on unmount, and the invariant that importing `App` creates no Firebase app |
+| `components/LoginPanel.test.tsx` | Providers are data-driven: one button per config entry, lazy provider construction, pending-state, centring from 320px to 1920px |
+| `signInFlow.test.tsx` | End to end through the real `App`: a click reaches `signInWithPopup` with a real provider, and a failure surfaces a readable message |
+| `components/AppHeader.test.tsx` | Brand mark, and that the Log Out item tracks session state and fires exactly once |
+| `components/TokenNotice.test.tsx` | Copy success, unavailable clipboard, blocked clipboard |
+| `layout.viewport.test.tsx` | Header/footer geometry from 320px to 1920px: no overflow, no clipping |
+| `copyToClipboard.test.ts` | Async Clipboard API wrapper and its unsupported-context error |
+| `env.test.ts` | Env validation helpers |
+| `harness.test.ts` | Proves the browser harness and matchers are actually wired up |
+
+### Gotchas when writing tests here
+
+Each of these cost real debugging time; they are properties of this setup, not of
+your test.
+
+- **`await render(...)`.** Rendering is async in this harness; skipping `await`
+  queries the DOM before anything is in it.
+- **Effects do not flush synchronously.** After a render, poll for the state you
+  expect with `await expect.poll(() => ...)` rather than asserting immediately.
+- **Set viewports with `page.viewport(w, h)`** from `vitest/browser`. Playwright's
+  `page.setViewportSize` does not exist here, and importing `page` from the older
+  `@vitest/browser/context` path is deprecated and will break in the next major.
+- **antd `message` outlives `unmount()`.** It renders into its own portal, so a
+  toast from one test can satisfy the next test's assertion while proving nothing.
+  Call `message.destroy()` in `beforeEach` and assert the area is empty first. Do
+  *not* reset by wiping `document.body.innerHTML` — antd caches that container and
+  later toasts render into a detached node that never appears.
+- **A test that cannot fail is worse than no test.** Where an assertion matters,
+  break the thing it guards and confirm the test goes red. Both the responsive and
+  the copy-feedback tests were only trusted after that exercise — and the copy
+  feedback tests turned out to be passing vacuously before it.
 
 ## Continuous integration & deployment
 

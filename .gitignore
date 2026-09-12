@@ -26,3 +26,7 @@ openapi_v2.yml
 releases.json
 swagger_spec.json
 dist
+
+# vitest browser-mode artifacts (failure screenshots, captured attachments)
+__screenshots__/
+.vitest-attachments/

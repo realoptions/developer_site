@@ -46,12 +46,19 @@ with that remedy rather than an unresolved-import error.
 | `npm run build`       | Production build to `dist/` (runs the spec preflight first). |
 | `npm run preview`     | Serve the built `dist/` locally.                          |
 | `npm run spec`        | Download the OpenAPI spec and write it as JSON.           |
+| `npm run verify`      | The whole gate: colour guard + typecheck + tests.          |
 | `npm run typecheck`   | `tsc -p tsconfig.app.json --noEmit`.                      |
 | `npm test`            | Single run of the browser test suite.                     |
 | `npm run test:watch`  | Watch mode for the same suite.                            |
+| `npm run test:coverage` | Same suite with V8 coverage.                             |
+| `npm run lint:colors` | Fails on any colour literal outside `src/theme.ts`.       |
 
-There is no lint or format tooling configured in this repo; `typecheck` is the
-static gate.
+`npm run verify` is the one command that answers "is this safe to ship?". It is
+what CI runs, and both CI workflows call it rather than restating the steps, so
+the local gate and the deployed gate cannot drift. It deliberately does **not**
+include `build`: the deploy build step stamps `VITE_TAG` and
+`VITE_FirebaseAPIKey` into `.env` first, and a build inside `verify` would
+produce an artifact without them.
 
 > **Not Create React App.** This project was migrated to Vite. The legacy CRA
 > scripts and the `build/` output directory from those docs are gone; only the
@@ -198,11 +205,19 @@ your test.
 ## Continuous integration & deployment
 
 - **[`test.yml`](.github/workflows/test.yml)** runs on every push: install →
-  `npm run spec` → `npm run typecheck` → install Chromium → `npm test` → build.
-- **[`deploy.yml`](.github/workflows/deploy.yml)** runs on push to `master`:
-  generates the spec, stamps `VITE_TAG` from `scripts/outputTag`, injects
-  `VITE_FirebaseAPIKey` from the `FIREBASE_API_KEY` secret, builds, and publishes
-  `dist/` to GitHub Pages.
+  `npm run spec` → install Chromium → `npm run verify` → build.
+- **[`deploy.yml`](.github/workflows/deploy.yml)** runs on push to `master` as
+  three jobs: `test` → `build` → `deploy`. The `test` job runs the same
+  `npm run verify` gate, and `build` declares `needs: test`, so a failing suite
+  stops the artifact being uploaded and published rather than merely reporting a
+  red tick on a separate workflow.
+
+The gate is enforced by exit codes, not by watching: a failing test exits 1, a run
+matching zero test files also exits 1 (a silently-empty suite cannot pass), and
+nothing in either workflow uses `continue-on-error`, `|| true` or `if: always()`.
+
+Tests pass without a `.env`, which matters because `.env` is git-ignored and CI
+has none.
 
 Required repository secrets: `FIREBASE_API_KEY`, and `ACCESS_TOKEN` (optional,
 GitHub API rate-limit relief for the spec download).

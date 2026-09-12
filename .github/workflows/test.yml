@@ -20,16 +20,13 @@ jobs:
         run: npm run spec
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-      - name: colour-token guard
-        # Brand/accent colours must live only in src/theme.ts. Fails the build if a
-        # colour literal reappears anywhere else in src.
-        run: npm run lint:colors
-      - name: typecheck
-        run: npm run typecheck
       - name: install browser test dependencies
         run: npx playwright install --with-deps chromium
-      - name: test
-        run: npm test
+      # The check set itself is defined once, in package.json, and shared with the
+      # deploy workflow's gating job. Restating the steps in each workflow is how
+      # the two would quietly drift apart.
+      - name: verify
+        run: npm run verify
       - name: build
         run: npm run build
         env:

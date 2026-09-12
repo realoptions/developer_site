@@ -20,6 +20,13 @@
   --logo-size: 50px;
 
   /*
+   * Width cap for the sign-in block. Long-form content should not run edge to
+   * edge on a 1920px screen, and the old layout faked this with empty
+   * spacer <Col>s instead of a max-width.
+   */
+  --login-max-width: 22rem;
+
+  /*
    * Shared horizontal gutter for header, content and footer.
    *
    * Fluid on purpose: the old fixed 50px gutter ate 100px of a 320px screen.

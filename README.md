@@ -100,9 +100,36 @@ release** (e.g. `v0.22.0`) — not this site's own `package.json` version.
 ## Authentication
 
 Three providers are wired up via Firebase popup sign-in: **Google**, **Facebook**
-and **GitHub** ([`src/FirebaseLogin.tsx`](src/FirebaseLogin.tsx)). After signing
+and **GitHub** ([`src/authProviders.ts`](src/authProviders.ts)). After signing
 in, the app reads the Firebase ID token and offers a **Copy Token** button; paste
 that into Swagger UI's `JWT (apiKey)` box to authenticate requests.
+
+### Adding a sign-in provider
+
+Append one entry to the `PROVIDERS` array in `src/authProviders.ts`:
+
+```ts
+{
+  key: "microsoft",
+  label: "Continue with Microsoft",
+  Icon: WindowsOutlined,
+  create: () => new OAuthAuthProvider("microsoft.com"),
+}
+```
+
+That is the whole change. The login panel maps over the array, so no component,
+markup or layout edit is needed, and the new button inherits the existing width,
+centreing, pending-state and error handling.
+
+Providers are built by `create()` **at sign-in time**, never at import. Besides
+keeping module import side-effect free, this gives every attempt a fresh provider,
+so a cancelled popup cannot leave stale scopes or custom parameters behind for the
+next one.
+
+Failures are translated into a user-visible sentence via
+`describeSignInError` ([`src/authErrors.ts`](src/authErrors.ts)); add a case to
+`ERROR_MESSAGES` there if you want a custom string for a new Firebase error code.
+Unrecognised codes still surface their underlying message rather than going silent.
 
 Clipboard copying goes through the async Clipboard API
 ([`src/copyToClipboard.ts`](src/copyToClipboard.ts)), so it requires a secure
@@ -156,7 +183,9 @@ src/
     TokenNotice.tsx       Token explanation + Copy Token action.
     ApiDocs.tsx           Swagger UI wrapper.
     Logo.tsx              Brand mark.
-  FirebaseLogin.tsx       Provider sign-in buttons.
+  authProviders.ts        Sign-in provider config array (add a provider here).
+  authErrors.ts           Firebase auth error codes -> user-facing messages.
+  components/LoginPanel.tsx  Sign-in buttons, rendered from the provider array.
   env.ts                  All (typed) environment reads + validation.
   firebase.ts             Lazy, memoised Firebase app/auth singletons.
   copyToClipboard.ts      Async Clipboard API wrapper.

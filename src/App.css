@@ -16,6 +16,27 @@
   fill: #eb2f96;
 }
 
+/*
+ * antd applies border-box to its own components, but there is no global reset in
+ * this project, so our own elements would fall back to content-box: width 100%
+ * plus any horizontal padding would overflow the viewport. Scoped to our classes
+ * on purpose - a global `*` reset would reach into Swagger UI, whose layout we do
+ * not own.
+ */
+.app-shell,
+.app-header,
+.app-logo,
+.app-menu,
+.app-content,
+.app-footer,
+.login-panel,
+.login-provider-list,
+.login-provider-button,
+.auth-loading,
+.config-error {
+  box-sizing: border-box;
+}
+
 .app-shell {
   /* dvh tracks the real viewport on mobile browsers whose chrome shrinks on
      scroll; vh overflows there. */
@@ -64,6 +85,33 @@
 .token-notice,
 .auth-alert {
   margin-block-start: var(--space-lg);
+}
+
+/*
+ * Sign-in block: horizontally centred with a width cap, so it stays readable on a
+ * wide screen and usable on a narrow one. Replaces three empty spacer <Col>s that
+ * faked centring via the grid and only worked at the md breakpoint and above.
+ */
+.login-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  inline-size: 100%;
+  max-inline-size: var(--login-max-width);
+  margin-inline: auto;
+  padding-block: var(--space-3xl);
+}
+
+.login-provider-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  inline-size: 100%;
+}
+
+.login-provider-button {
+  inline-size: 100%;
 }
 
 .auth-loading {

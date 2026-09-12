@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   onAuthStateChanged,
+  signInWithPopup,
   signOut as firebaseSignOut,
   type Auth,
   type User,
 } from "firebase/auth";
 import { getFirebaseAuth } from "../firebase.ts";
+import { describeSignInError } from "../authErrors.ts";
+import type { ProviderConfig } from "../authProviders.ts";
 
 /** `loading` covers the window before Firebase reports the persisted session. */
 export type AuthStatus = "loading" | "authenticated" | "signed-out";
@@ -19,7 +22,11 @@ export interface UseAuth {
   readonly status: AuthStatus;
   /** Most recent auth failure, so a component can render it. */
   readonly error: Error | null;
+  /** Key of the provider whose popup is currently in flight, else `null`. */
+  readonly pendingProvider: string | null;
   readonly signOut: () => Promise<void>;
+  /** Start a popup sign-in with one configured provider. */
+  readonly signIn: (provider: ProviderConfig) => Promise<void>;
 }
 
 const asError = (cause: unknown): Error =>
@@ -88,11 +95,47 @@ export function useAuth(injectedAuth?: Auth): UseAuth {
     }
   }, [auth]);
 
+  const [pendingProvider, setPendingProvider] = useState<string | null>(null);
+
+  const signIn = useCallback(
+    async (provider: ProviderConfig) => {
+      // A popup can only be in flight once; ignore re-entry rather than stacking
+      // requests that Firebase would cancel anyway.
+      if (pendingProvider !== null) {
+        return;
+      }
+      setPendingProvider(provider.key);
+      setError(null);
+      try {
+        // Built here, not at import time.
+        await signInWithPopup(auth, provider.create());
+        setError(null);
+      } catch (cause: unknown) {
+        // Popups are closed and cancelled routinely, so a rejection here is a
+        // normal user action rather than an exceptional one - but it must never
+        // be silent, which is exactly what the old fire-and-forget did.
+        setError(new Error(describeSignInError(cause)));
+      } finally {
+        setPendingProvider(null);
+      }
+    },
+    [auth, pendingProvider],
+  );
+
   const status: AuthStatus = !sessionResolved
     ? "loading"
     : user
       ? "authenticated"
       : "signed-out";
 
-  return { auth, user, token, status, error, signOut };
+  return {
+    auth,
+    user,
+    token,
+    status,
+    error,
+    pendingProvider,
+    signOut,
+    signIn,
+  };
 }

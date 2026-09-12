@@ -1,10 +1,10 @@
 import { Alert, Layout } from "antd";
 import "./App.css";
-import LoginButton from "./FirebaseLogin.tsx";
 import ApiDocs from "./components/ApiDocs.tsx";
 import AppFooter from "./components/AppFooter.tsx";
 import AppHeader from "./components/AppHeader.tsx";
 import AuthLoading from "./components/AuthLoading.tsx";
+import LoginPanel from "./components/LoginPanel.tsx";
 import TokenNotice from "./components/TokenNotice.tsx";
 import { useAuth } from "./hooks/useAuth.ts";
 
@@ -15,7 +15,7 @@ const { Content } = Layout;
  * `src/components/*`; no Firebase call, observer or token handling appears here.
  */
 const DevHome = () => {
-  const { auth, status, token, error, signOut } = useAuth();
+  const { status, token, error, signOut, signIn, pendingProvider } = useAuth();
 
   return (
     <Layout className="app-shell">
@@ -29,7 +29,7 @@ const DevHome = () => {
             type="error"
             className="auth-alert"
             title="Authentication problem"
-            description={`The last auth operation did not complete: ${error.message}`}
+            description={error.message}
           />
         )}
         {status === "loading" && <AuthLoading />}
@@ -39,7 +39,9 @@ const DevHome = () => {
             <ApiDocs />
           </>
         )}
-        {status === "signed-out" && <LoginButton auth={auth} />}
+        {status === "signed-out" && (
+          <LoginPanel signIn={signIn} pendingProvider={pendingProvider} />
+        )}
       </Content>
       <AppFooter />
     </Layout>

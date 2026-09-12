@@ -1,3 +1,37 @@
+# Developer site
+
+## Quick start
+
+Requires Node as pinned in [`.nvmrc`](.nvmrc) (`nvm use` picks it up).
+
+```bash
+npm ci
+npm run spec   # generates src/swagger_spec.json (required, see below)
+npm run dev    # or: npm run build
+```
+
+### Why `npm run spec` is required
+
+`src/swagger_spec.json` is imported by `src/App.tsx` but is **generated and git-ignored**,
+so it does not exist in a fresh clone. `npm run spec` downloads `openapi_gcp.yml` from the
+latest [`realoptions/option_price_faas`](https://github.com/realoptions/option_price_faas)
+release and writes it as JSON.
+
+A GitHub token is **optional** — it is only needed if that repo becomes private or you hit
+the anonymous API rate limit:
+
+```bash
+ACCESS_TOKEN=ghp_xxx npm run spec
+```
+
+`npm run dev` and `npm run build` check for the file first and fail with a message pointing
+at `npm run spec`, rather than an unresolved-import error.
+
+Other commands: `npm run typecheck`, `npm test` (browser tests via Playwright — run
+`npx playwright install --with-deps chromium` once).
+
+---
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts

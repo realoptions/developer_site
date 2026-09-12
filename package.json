@@ -3,15 +3,24 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@ant-design/icons": "^6.1.0",
     "antd": "^6.3.1",
     "firebase": "^12.10.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "react-social-login-buttons": "^4.1.1",
     "swagger-ui-react": "^5.32.11"
   },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "spec": "node ./scripts/downloadYML.js",
+    "predev": "node ./scripts/checkSpec.js",
+    "prebuild": "node ./scripts/checkSpec.js",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit",
+    "test": "vitest run --config vitetest.config.ts",
+    "test:watch": "vitest --config vitetest.config.ts"
   },
   "browserslist": {
     "production": [
@@ -26,6 +35,8 @@
     ]
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@vitest/browser-playwright": "^4.1.8",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/swagger-ui-react": "^5.18.0",
@@ -37,5 +48,9 @@
     "vite": "^8.0.16",
     "vitest": "^4.1.8",
     "vitest-browser-react": "^2.0.5"
+  },
+  "engines": {
+    "node": "^22.12.0 || >=24.0.0",
+    "npm": ">=10.0.0"
   }
 }

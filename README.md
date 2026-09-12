@@ -113,7 +113,7 @@ Append one entry to the `PROVIDERS` array in `src/authProviders.ts`:
   key: "microsoft",
   label: "Continue with Microsoft",
   Icon: WindowsOutlined,
-  create: () => new OAuthAuthProvider("microsoft.com"),
+  create: () => new OAuthProvider("microsoft.com"),
 }
 ```
 
@@ -183,9 +183,9 @@ src/
     TokenNotice.tsx       Token explanation + Copy Token action.
     ApiDocs.tsx           Swagger UI wrapper.
     Logo.tsx              Brand mark.
+    LoginPanel.tsx        Sign-in buttons, rendered from the provider array.
   authProviders.ts        Sign-in provider config array (add a provider here).
   authErrors.ts           Firebase auth error codes -> user-facing messages.
-  components/LoginPanel.tsx  Sign-in buttons, rendered from the provider array.
   env.ts                  All (typed) environment reads + validation.
   firebase.ts             Lazy, memoised Firebase app/auth singletons.
   copyToClipboard.ts      Async Clipboard API wrapper.

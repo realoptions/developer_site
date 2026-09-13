@@ -1,13 +1,131 @@
-.App {
+/*
+ * App shell layout.
+ *
+ * Flexbox throughout. The previous version relied on CSS floats for both the
+ * logo (floated leading) and the header menu (floated trailing), which took
+ * them out of normal flow: nothing contained the floats, so the logo needed a
+ * hand-computed `paddingTop: (64 - 50) / 2` to look vertically centred, and
+ * the trailing menu could collide with the brand instead of being pushed away
+ * from it.
+ *
+ * All dimensions come from the tokens declared in src/index.css.
+ */
+
+/*
+ * Brand mark colour. The value comes from src/theme.ts, applied to the document
+ * element by src/index.tsx - there is deliberately no fallback hex here, so a
+ * missing token shows up as a visibly wrong colour instead of quietly keeping the
+ * old one and letting a hardcoded value survive outside the theme file.
+ */
+.logo-primary {
+  fill: var(--brand-accent);
+}
+
+/*
+ * antd applies border-box to its own components, but there is no global reset in
+ * this project, so our own elements would fall back to content-box: width 100%
+ * plus any horizontal padding would overflow the viewport. Scoped to our classes
+ * on purpose - a global `*` reset would reach into Swagger UI, whose layout we do
+ * not own.
+ */
+.app-shell,
+.app-header,
+.app-logo,
+.app-menu,
+.app-content,
+.app-footer,
+.login-panel,
+.login-provider-list,
+.login-provider-button,
+.auth-loading,
+.config-error {
+  box-sizing: border-box;
+}
+
+.app-shell {
+  /* dvh tracks the real viewport on mobile browsers whose chrome shrinks on
+     scroll; vh overflows there. */
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  height: var(--header-height);
+  padding-inline: var(--gutter);
+  background: var(--header-bg);
+  color: var(--header-text);
+}
+
+.app-logo {
+  /* Never squeezed by the menu; the logo keeps its square aspect. */
+  flex: none;
+  inline-size: var(--logo-size);
+  block-size: var(--logo-size);
+  display: block;
+}
+
+/*
+ * margin-inline-start:auto is what replaces the trailing float. It absorbs the
+ * remaining space, so the menu sits at the trailing edge and can never overlap
+ * the brand. min-width:0 lets it shrink (and let antd's own overflow menu kick
+ * in) rather than pushing the header wider than the viewport.
+ */
+.app-menu {
+  margin-inline-start: auto;
+  min-width: 0;
+  line-height: var(--header-height);
+}
+
+.app-content {
+  padding-inline: var(--gutter);
+}
+
+.app-footer {
+  padding-inline: var(--gutter);
   text-align: center;
 }
 
-.logo-primary {
-  fill: #eb2f96
+/* Space the auth notice and auth error away from whatever sits above them. */
+.token-notice,
+.auth-alert {
+  margin-block-start: var(--space-lg);
 }
 
-.logo {
-  width: 50px;
-  height: 50px;
-  float: left;
+/*
+ * Sign-in block: horizontally centred with a width cap, so it stays readable on a
+ * wide screen and usable on a narrow one. Replaces three empty spacer <Col>s that
+ * faked centring via the grid and only worked at the md breakpoint and above.
+ */
+.login-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  inline-size: 100%;
+  max-inline-size: var(--login-max-width);
+  margin-inline: auto;
+  padding-block: var(--space-3xl);
+}
+
+.login-provider-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  inline-size: 100%;
+}
+
+.login-provider-button {
+  inline-size: 100%;
+}
+
+.auth-loading {
+  padding-block: var(--space-4xl);
+  text-align: center;
+}
+
+.auth-loading-status {
+  margin-block-start: var(--space-md);
 }

@@ -5,30 +5,62 @@ on:
       - master
 
 jobs:
-  build:
+  # Publishing is gated on the test suite. Previously `build` ran straight into the
+  # artifact upload, so a deploy - including a manually re-run one - could ship
+  # code that fails its own tests. The check set lives in package.json (`npm run
+  # verify`) rather than being restated here, so this workflow and test.yml cannot
+  # drift apart.
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: nodejs
         uses: actions/setup-node@v4
         with:
-          node-version: "23.5.0"
-      - name: setup for deploy
+          node-version-file: .nvmrc
+          cache: npm
+      - name: install dependencies
+        run: npm ci
+      - name: generate OpenAPI spec
+        # src/swagger_spec.json is git-ignored and imported by app code, so the
+        # browser tests cannot even load the module graph without it.
+        run: npm run spec
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      - name: install browser test dependencies
+        run: npx playwright install --with-deps chromium
+      - name: verify
+        run: npm run verify
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: install dependencies
+        run: npm ci
+      - name: generate OpenAPI spec
+        # Also writes scripts/releases.json, which scripts/outputTag reads below.
+        run: npm run spec
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      - name: build
         run: |
-          for i in {1..5}; do curl -L -H "Authorization: token  ${{ secrets.ACCESS_TOKEN }}" -o ./scripts/releases.json https://api.github.com/repos/realoptions/option_price_faas/releases/latest && break || sleep 10; done
           tag=$(node ./scripts/outputTag)
           echo "VITE_TAG=$tag" >> .env
-          echo "this is the tag #: $tag"
           echo "VITE_FirebaseAPIKey=${{ secrets.FIREBASE_API_KEY }}" >> .env
-          npm ci
-          access_token=${{ secrets.ACCESS_TOKEN }} node ./scripts/downloadYML.js
           npm run build
         env:
           CI: true
 
       - name: Upload static files as artifact
         id: deployment
-        uses: actions/upload-pages-artifact@v3 # or specific "vX.X.X" version tag for this action
+        uses: actions/upload-pages-artifact@v3
         with:
           path: dist/
 

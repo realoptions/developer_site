@@ -9,16 +9,25 @@ jobs:
       - name: nodejs
         uses: actions/setup-node@v4
         with:
-          node-version: "23.5.0"
-      - name: test install
-        run: |
-          npm ci
-          for i in {1..5}; do curl -L -H "Authorization: token  ${{ secrets.ACCESS_TOKEN }}" -o ./scripts/releases.json https://api.github.com/repos/realoptions/option_price_faas/releases/latest && break || sleep 10; done
-          tag=$(node ./scripts/outputTag)
-          echo "VITE_TAG=$tag" >> .env
-          echo "this is the tag #: $tag"
-          echo "VITE_FirebaseAPIKey=${{ secrets.FIREBASE_API_KEY }}" >> .env
-          access_token=${{ secrets.ACCESS_TOKEN }} node ./scripts/downloadYML.js
-          npm run build
+          node-version-file: .nvmrc
+          cache: npm
+      - name: install dependencies
+        run: npm ci
+      - name: generate OpenAPI spec
+        # src/swagger_spec.json is git-ignored and imported by src/App.tsx, so it must
+        # be generated before typecheck/build. The token guards against the anonymous
+        # GitHub API rate limit that shared CI runner IPs are prone to hit.
+        run: npm run spec
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      - name: install browser test dependencies
+        run: npx playwright install --with-deps chromium
+      # The check set itself is defined once, in package.json, and shared with the
+      # deploy workflow's gating job. Restating the steps in each workflow is how
+      # the two would quietly drift apart.
+      - name: verify
+        run: npm run verify
+      - name: build
+        run: npm run build
         env:
           CI: true

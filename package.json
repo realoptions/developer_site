@@ -3,15 +3,28 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@ant-design/icons": "^6.1.0",
     "antd": "^6.3.1",
     "firebase": "^12.10.0",
-    "react-social-login-buttons": "^4.1.1",
-    "swagger-ui-react": "^5.32.11"
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "swagger-ui-react": "^5.32.15"
   },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "spec": "node ./scripts/downloadYML.js",
+    "predev": "node ./scripts/checkSpec.js && npm run lint",
+    "prebuild": "node ./scripts/checkSpec.js && npm run lint",
+    "verify": "npm run lint && npm run typecheck && npm run test:coverage",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit",
+    "test": "vitest run --config vitetest.config.ts",
+    "test:watch": "vitest --config vitetest.config.ts",
+    "test:coverage": "vitest run --config vitetest.config.ts --coverage",
+    "lint:colors": "node ./scripts/checkColorTokens.js",
+    "lint:theme": "node ./scripts/checkThemeSource.js",
+    "lint": "npm run lint:colors && npm run lint:theme"
   },
   "browserslist": {
     "production": [
@@ -26,10 +39,13 @@
     ]
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/swagger-ui-react": "^5.18.0",
     "@vitejs/plugin-react": "^5.2.0",
+    "@vitest/browser-playwright": "^4.1.8",
+    "@vitest/coverage-v8": "^4.1.11",
     "follow-redirects": "^1.16.0",
     "js-yaml": "^4.3.2",
     "playwright": "^1.58.2",
@@ -37,5 +53,9 @@
     "vite": "^8.0.16",
     "vitest": "^4.1.11",
     "vitest-browser-react": "^2.0.5"
+  },
+  "engines": {
+    "node": "^22.12.0 || >=24.0.0",
+    "npm": ">=10.0.0"
   }
 }

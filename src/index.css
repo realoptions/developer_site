@@ -1,3 +1,41 @@
+/*
+ * Named spacing scale (4px base) and layout dimensions.
+ *
+ * These are the only place layout numbers are written down. Components reference
+ * the tokens instead of restating pixels, so gutters stay consistent and can be
+ * retuned in one place. See src/App.css for the layout that consumes them.
+ */
+:root {
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+  --space-4xl: 64px;
+
+  /* Header band and brand mark. */
+  --header-height: var(--space-4xl);
+  --logo-size: 50px;
+
+  /*
+   * Width cap for the sign-in block. Long-form content should not run edge to
+   * edge on a 1920px screen, and the old layout faked this with empty
+   * spacer <Col>s instead of a max-width.
+   */
+  --login-max-width: 22rem;
+
+  /*
+   * Shared horizontal gutter for header, content and footer.
+   *
+   * Fluid on purpose: the old fixed 50px gutter ate 100px of a 320px screen.
+   * clamp() keeps it 16px on phones and 48px on desktops without breakpoint
+   * bookkeeping.
+   */
+  --gutter: clamp(var(--space-lg), 5vw, var(--space-3xl));
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -10,4 +48,27 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/*
+ * Rendered by src/index.tsx when config validation fails. Lives in index.css
+ * rather than App.css because that branch never mounts App, so App.css is not
+ * guaranteed to be loaded.
+ */
+.config-error {
+  max-inline-size: 40rem;
+  margin: var(--space-3xl) auto;
+  padding-inline: var(--gutter);
+  font-family: system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+.config-error h1 {
+  font-size: 1.25rem;
+  margin-block-end: var(--space-md);
+}
+
+.config-error p {
+  margin: 0;
+  overflow-wrap: anywhere;
 }

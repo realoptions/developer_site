@@ -1,117 +1,61 @@
-import { useState, useEffect } from "react";
-import { Layout, Menu, Button, message, Alert } from "antd";
+import { Alert, Layout } from "antd";
 import "./App.css";
-import { initializeApp } from "firebase/app";
-import { getAuth, onAuthStateChanged, signOut, type User } from "firebase/auth";
-import LoginButton from "./FirebaseLogin.tsx";
-import { CopyOutlined as Copy } from "@ant-design/icons";
-import type { MenuProps } from "antd";
-import SwaggerUI from "swagger-ui-react";
-import "swagger-ui-react/swagger-ui.css";
-import Logo from "./Logo.tsx";
-import { menuHeight, logoHeight, paddingTop } from "./styles.tsx";
-import { copyToClipboard } from "./copyToClipboard.tsx";
-type MenuItem = Required<MenuProps>["items"][number];
-import apiSpec from "./swagger_spec.json";
-import config from "./config.json";
-const { Header, Content, Footer } = Layout;
-const firebase = initializeApp({
-  ...config,
-  apiKey: import.meta.env.VITE_FirebaseAPIKey, // process.env.REACT_APP_FirebaseAPIKey,
-});
-const auth = getAuth(firebase);
-const info = () => {
-  message.info("Token copied");
-};
-const Description = ({ token }: { token: string }) => (
-  <div>
-    <p>
-      The API uses tokens provided through OAUTH2 Providers. To authenticate the
-      API, copy the token and paste it into the "JWT (apiKey)" box.
-    </p>
-    <Button
-      type="primary"
-      icon={<Copy />}
-      onClick={() => {
-        copyToClipboard(token);
-        info();
-      }}
-    >
-      Copy Token
-    </Button>
-  </div>
-);
+import ApiDocs from "./components/ApiDocs.tsx";
+import AppFooter from "./components/AppFooter.tsx";
+import AppHeader from "./components/AppHeader.tsx";
+import AuthLoading from "./components/AuthLoading.tsx";
+import LoginPanel from "./components/LoginPanel.tsx";
+import TokenNotice from "./components/TokenNotice.tsx";
+import { useAuth } from "./hooks/useAuth.ts";
+import { headerMenuTheme } from "./theme.ts";
+import type { ThemeMode } from "./theme.ts";
 
-const explanationStyle = { marginTop: 15 };
-const Explanation = ({ token }: { token: string }) => (
-  <Alert
-    title="Authentication"
-    description={<Description token={token} />}
-    type="info"
-    style={explanationStyle}
-  />
-);
+const { Content } = Layout;
 
-const menuItems: MenuItem[] = [{ key: "1", label: "Log Out" }];
+interface AppProps {
+  /**
+   * Resolved once in src/index.tsx and passed down. Doing the resolution here too
+   * is what let the CSS custom properties and the antd header/menu scheme drift
+   * apart; the component takes the answer rather than deriving it.
+   */
+  themeMode: ThemeMode;
+}
 
-//onClick={() => signOut(auth)} style={{ float: 'right' }}>Log Out
+/**
+ * Composition only. Auth state lives in `useAuth`, presentation in
+ * `src/components/*`; no Firebase call, observer or token handling appears here.
+ */
+const DevHome = ({ themeMode }: AppProps) => {
+  const { status, token, error, signOut, signIn, pendingProvider } = useAuth();
 
-const DevHome = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState("");
-
-  useEffect(() => {
-    const unregisterAuthObserver = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        user
-          .getIdToken(true)
-          .then(setToken)
-          .catch((err) => console.log(err));
-      } else {
-        setToken("");
-      }
-      setUser(user);
-    });
-    return () => unregisterAuthObserver(); // Make sure we un-register Firebase observers when the component unmounts.
-  }, []);
-  const isSignedIn = !!user;
   return (
-    <Layout className="layout" style={{ minHeight: "100vh" }}>
-      <Header>
-        <div className="logo" style={{ paddingTop }}>
-          <Logo
-            className="logo-primary"
-            height={logoHeight}
-            width={logoHeight}
+    <Layout className="app-shell">
+      <AppHeader
+        showSignOut={status === "authenticated"}
+        onSignOut={() => void signOut()}
+        menuTheme={headerMenuTheme(themeMode)}
+      />
+      <Content className="app-content">
+        {error && (
+          <Alert
+            type="error"
+            className="auth-alert"
+            title="Authentication problem"
+            description={error.message}
           />
-        </div>
-        <Menu
-          theme="dark"
-          mode="horizontal"
-          style={{
-            lineHeight: menuHeight + "px",
-            float: "right",
-            padding: "0px 10px",
-          }}
-          items={isSignedIn ? menuItems : undefined}
-          onClick={() => signOut(auth)}
-        />
-      </Header>
-      <Content style={{ padding: "0 50px" }}>
-        {isSignedIn ? (
+        )}
+        {status === "loading" && <AuthLoading />}
+        {status === "authenticated" && (
           <>
-            <Explanation token={token} />
-            <SwaggerUI
-              spec={apiSpec}
-              supportedSubmitMethods={["get", "put", "post", "delete"]}
-              docExpansion="list"
-            />
+            <TokenNotice token={token} />
+            <ApiDocs />
           </>
-        ) : (
-          <LoginButton auth={auth} />
+        )}
+        {status === "signed-out" && (
+          <LoginPanel signIn={signIn} pendingProvider={pendingProvider} />
         )}
       </Content>
-      <Footer style={{ textAlign: "center" }}>Finside</Footer>
+      <AppFooter />
     </Layout>
   );
 };
